@@ -102,6 +102,31 @@ public class LearningWorkflowTests : IDisposable
     }
 
     [Fact]
+    public async Task WeeklySessionRemainsAvailableAndResumesAfterAllVocabularyIsDeleted()
+    {
+        var word = AddWord("purchase", "mua");
+        var original = await quizzes.Start(user.Id, new StartPracticeRequest { QuizType = QuizType.WEEKLY });
+        db.Vocabularies.Remove(word);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var availability = await quizzes.Weekly(user.Id);
+        Assert.True(availability.Available);
+        Assert.Equal(original.Id, availability.ActiveQuizId);
+        Assert.Equal(1, availability.QuestionCount);
+        var resumed = await quizzes.Start(user.Id, new StartPracticeRequest { QuizType = QuizType.WEEKLY });
+        Assert.Equal(original.Id, resumed.Id);
+        Assert.Null(resumed.Questions[0].VocabularyId);
+        var completed = await quizzes.Answer(user.Id, resumed.Id,
+            new AnswerRequest { QuestionId = resumed.Questions[0].Id, Answer = "mua" });
+        Assert.True(completed.IsCorrect);
+        Assert.NotNull(completed.Quiz.CompletedAt);
+        Assert.Empty(await db.LearningProgresses.ToListAsync());
+        Assert.False((await quizzes.Weekly(user.Id)).Available);
+        Assert.Null((await quizzes.Weekly(user.Id)).ActiveQuizId);
+    }
+
+    [Fact]
     public async Task UsersCannotReadAnswerOrRevealAnotherUsersQuiz()
     {
         AddWord("purchase", "mua");

@@ -92,6 +92,20 @@ public class LibraryTests(ApiFactory factory) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task ImportAllowsFiveHundredEntriesWithBlankLinesAndTrailingNewline()
+    {
+        using var client = factory.CreateApiClient();
+        await ApiFactory.RegisterAsync(client);
+        var text = string.Join("\r\n\r\n", Enumerable.Range(1, 500).Select(index => $"word{index} - nghĩa {index}")) + "\r\n";
+        var response = await client.PostAsJsonAsync("/api/vocabularies/import", new ImportRequest(text, null));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var imported = (await response.Content.ReadFromJsonAsync<ImportResponse>())!;
+        Assert.Equal(500, imported.ImportedCount);
+        Assert.Empty(imported.InvalidLines);
+        Assert.Equal(500, (await client.GetFromJsonAsync<List<VocabularyDto>>("/api/vocabularies", JsonOptions))!.Count);
+    }
+
+    [Fact]
     public async Task BlankWordsAndOversizedImportsAreRejected()
     {
         using var client = factory.CreateApiClient();

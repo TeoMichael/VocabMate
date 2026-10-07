@@ -12,7 +12,7 @@ Each user can read and modify only their vocabulary, topics, progress, quizzes, 
 
 A vocabulary item requires a nonblank English word and meaning. Its example and topic are optional. Creating a word creates a progress record with zero counters and `NEW` mastery. A topic must belong to the same user. A used topic cannot be deleted until its vocabulary is reassigned or removed.
 
-Bulk input uses one `word - meaning` entry per nonblank line, with whitespace around the hyphen separator. Split on the first separator, trim both sides, validate each item, and create separate vocabulary records. Blank lines are ignored. A malformed or oversized line is reported with its original line number and reason; it does not prevent other valid lines from being imported. Imports allow at most 500 lines per request. The optional topic applies to all valid imported entries and must be owned by the user.
+Bulk input uses one `word - meaning` entry per nonblank line, with whitespace around the hyphen separator. Split on the first separator, trim both sides, validate each item, and create separate vocabulary records. Blank lines are ignored and do not consume the 500-line limit. A malformed or oversized line is reported with its original line number and reason; it does not prevent other valid lines from being imported. Requests allow at most 500 nonblank lines and 320,000 input characters. CR, LF, and CRLF line endings preserve line boundaries. The optional topic applies to all valid imported entries and must be owned by the user.
 
 ## Mastery calculation
 
@@ -66,6 +66,8 @@ Each question accepts one answer. An accepted correct answer contributes one poi
 
 Unanswered solutions stay on the server. Flashcard reveal is explicit; the answer response supplies the solution after scoring. Repeated or competing answer submissions cannot count a question twice. Answer, score, and progress updates are saved together. Deleting live vocabulary preserves quiz snapshots but prevents later answers from updating the removed word's progress.
 
+`GET /api/quizzes` returns completed sessions by default. `GET /api/quizzes?completed=false` returns unfinished sessions so the user can resume their first unanswered question. Each list contains at most 50 of that user's sessions; unfinished sessions have a null completion timestamp.
+
 ## Daily practice
 
 The daily goal is ten distinct vocabulary IDs with accepted answers during the current UTC calendar day. Practicing the same word repeatedly increases its answer counters but advances the daily goal only once. Dashboard review count includes previously reviewed words below `MASTERED`; new practice count includes words never reviewed.
@@ -78,7 +80,9 @@ The API is authoritative for the date boundary. The UI may display dates using t
 
 The first weekly review becomes available seven days after account registration. Later reviews become available seven days after the latest completed `WEEKLY` quiz. Starting or abandoning a weekly session does not reset that eligibility clock; completion does.
 
-Availability is checked on request, so V1 needs no timer service, scheduled job, or background worker. A library must contain at least one word. The API returns `availableAt` so the interface can explain when the next test unlocks. Starting an eligible weekly review resumes an existing unfinished weekly session rather than creating another one. The same service could support automatic reminders later.
+Availability is checked on request, so V1 needs no timer service, scheduled job, or background worker. Creating a new review requires at least one live vocabulary item. An existing unfinished weekly review remains available from its snapshots even if all source vocabulary is deleted.
+
+The API returns `availableAt` to explain when a new test unlocks, `lastQuizId` for completed results, and `activeQuizId` for the unfinished review. Starting weekly practice resumes that active session before checking eligibility for a new test. Its preview question count stays equal to the saved test size. The same service could support automatic reminders later.
 
 ## Weekly selection
 

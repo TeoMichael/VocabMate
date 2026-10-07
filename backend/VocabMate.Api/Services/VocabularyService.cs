@@ -70,8 +70,9 @@ public class VocabularyService(AppDbContext db)
     public async Task<ImportResponse> ImportAsync(Guid userId, ImportRequest request)
     {
         await CheckTopicAsync(userId, request.TopicId);
-        var lines = request.Text.Replace("\r", "").Split('\n');
-        if (lines.Length > 500) throw new ApiException(400, "Import at most 500 lines at a time.");
+        var lines = request.Text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+        if (lines.Count(line => !string.IsNullOrWhiteSpace(line)) > 500)
+            throw new ApiException(400, "Import at most 500 nonblank lines at a time.");
         var invalid = new List<InvalidImportLine>();
         var importedCount = 0;
         for (var index = 0; index < lines.Length; index++)

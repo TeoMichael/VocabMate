@@ -12,7 +12,7 @@ namespace VocabMate.Api.Controllers;
 public class QuizzesController(QuizService quizzes, CurrentUser user) : ControllerBase
 {
     [HttpGet]
-    public Task<List<QuizSummaryDto>> History() => quizzes.History(user.Id);
+    public Task<List<QuizSummaryDto>> History([FromQuery] bool completed = true) => quizzes.History(user.Id, completed);
     [HttpGet("{id:guid}")]
     public Task<QuizSessionDto> Get(Guid id) => quizzes.Get(user.Id, id);
     [HttpPost("{id:guid}/answers")]

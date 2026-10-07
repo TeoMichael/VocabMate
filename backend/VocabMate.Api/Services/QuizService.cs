@@ -17,11 +17,9 @@ public class QuizService(AppDbContext db, LearningProgressService progressServic
         if (request.QuizType == QuizType.WEEKLY)
         {
             var weekly = await Weekly(userId);
+            if (weekly.ActiveQuizId.HasValue) return await Get(userId, weekly.ActiveQuizId.Value);
             if (!weekly.Available)
                 throw new ApiException(409, $"Your next weekly review is available on {weekly.AvailableAt:yyyy-MM-dd} UTC.");
-            var activeId = await db.Quizzes.Where(q => q.UserId == userId && q.QuizType == QuizType.WEEKLY && q.CompletedAt == null)
-                .OrderByDescending(q => q.CreatedAt).Select(q => (Guid?)q.Id).FirstOrDefaultAsync();
-            if (activeId.HasValue) return await Get(userId, activeId.Value);
         }
 
         var words = await db.Vocabularies.Include(v => v.Progress).Where(v => v.UserId == userId).ToListAsync();
@@ -66,8 +64,9 @@ public class QuizService(AppDbContext db, LearningProgressService progressServic
         return ToDto(quiz);
     }
 
-    public async Task<List<QuizSummaryDto>> History(Guid userId) => await db.Quizzes.AsNoTracking()
-        .Where(q => q.UserId == userId && q.CompletedAt != null).OrderByDescending(q => q.CompletedAt).Take(50)
+    public async Task<List<QuizSummaryDto>> History(Guid userId, bool completed = true) => await db.Quizzes.AsNoTracking()
+        .Where(q => q.UserId == userId && (completed ? q.CompletedAt != null : q.CompletedAt == null))
+        .OrderByDescending(q => q.CompletedAt).ThenByDescending(q => q.CreatedAt).Take(50)
         .Select(q => new QuizSummaryDto(q.Id, q.QuizType, q.Score, q.TotalQuestions, q.CreatedAt, q.CompletedAt)).ToListAsync();
 
     public async Task<RevealResponse> Reveal(Guid userId, Guid quizId, Guid questionId)
@@ -121,12 +120,15 @@ public class QuizService(AppDbContext db, LearningProgressService progressServic
             ?? throw new ApiException(401, "Your account could not be found. Please sign in again.");
         var last = await db.Quizzes.AsNoTracking().Where(q => q.UserId == userId && q.QuizType == QuizType.WEEKLY && q.CompletedAt != null)
             .OrderByDescending(q => q.CompletedAt).FirstOrDefaultAsync();
+        var active = await db.Quizzes.AsNoTracking().FirstOrDefaultAsync(q =>
+            q.UserId == userId && q.QuizType == QuizType.WEEKLY && q.CompletedAt == null);
         var availableAt = (last?.CompletedAt ?? user.CreatedAt).AddDays(7);
         var now = clock.GetUtcNow().UtcDateTime;
         var start = now.AddDays(-7);
         var count = await db.Vocabularies.CountAsync(v => v.UserId == userId);
         var recent = await db.Vocabularies.CountAsync(v => v.UserId == userId && v.CreatedAt >= start && v.CreatedAt <= now);
-        return new WeeklyReviewDto(now >= availableAt && count > 0, availableAt, start, now, recent, Math.Min(20, count), last?.Id);
+        return new WeeklyReviewDto(active != null || (now >= availableAt && count > 0), availableAt, start, now,
+            recent, active?.TotalQuestions ?? Math.Min(20, count), last?.Id, active?.Id);
     }
 
     private async Task<Quiz> FindQuiz(Guid userId, Guid quizId) => await db.Quizzes

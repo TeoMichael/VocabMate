@@ -25,4 +25,4 @@ public record AnswerResponse(bool IsCorrect, string CorrectAnswer, QuizSessionDt
 public record RevealResponse(string Meaning, string? ExampleSentence);
 public record QuizSummaryDto(Guid Id, QuizType QuizType, int Score, int TotalQuestions, DateTime CreatedAt, DateTime? CompletedAt);
 public record WeeklyReviewDto(bool Available, DateTime AvailableAt, DateTime WindowStart, DateTime WindowEnd,
-    int WordsLearned, int QuestionCount, Guid? LastQuizId);
+    int WordsLearned, int QuestionCount, Guid? LastQuizId, Guid? ActiveQuizId);

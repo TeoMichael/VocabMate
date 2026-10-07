@@ -7,6 +7,11 @@ namespace VocabMate.Tests;
 
 public class QuizApiTests
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+    };
+
     [Fact]
     public async Task QuizRoutesValidateOwnershipAndScoreStoredAnswers()
     {
@@ -37,6 +42,33 @@ public class QuizApiTests
         var words = await owner.GetFromJsonAsync<JsonElement>("/api/vocabularies");
         Assert.Equal(1, words.GetArrayLength());
         Assert.Equal(1, words[0].GetProperty("wrongCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task QuizListsSeparateCompletedAndResumableSessionsWithinOwnership()
+    {
+        using var factory = new ApiFactory();
+        using var owner = factory.CreateApiClient();
+        using var other = factory.CreateApiClient();
+        await ApiFactory.RegisterAsync(owner);
+        await ApiFactory.RegisterAsync(other);
+        (await owner.PostAsJsonAsync("/api/vocabularies", new { word = "purchase", meaning = "mua" })).EnsureSuccessStatusCode();
+        var created = await owner.PostAsJsonAsync("/api/practice", new { mode = "REVERSE", size = 1 });
+        var quiz = await created.Content.ReadFromJsonAsync<JsonElement>();
+        var id = quiz.GetProperty("id").GetString();
+        var pending = (await owner.GetFromJsonAsync<List<QuizSummaryDto>>("/api/quizzes?completed=false", JsonOptions))!;
+        Assert.Equal(id, Assert.Single(pending).Id.ToString());
+        Assert.Null(pending[0].CompletedAt);
+        Assert.Empty((await owner.GetFromJsonAsync<List<QuizSummaryDto>>("/api/quizzes", JsonOptions))!);
+        Assert.Empty((await other.GetFromJsonAsync<List<QuizSummaryDto>>("/api/quizzes?completed=false", JsonOptions))!);
+        (await owner.PostAsJsonAsync($"/api/quizzes/{id}/answers", new
+        {
+            questionId = quiz.GetProperty("questions")[0].GetProperty("id").GetString(), answer = "purchase"
+        })).EnsureSuccessStatusCode();
+        Assert.Empty((await owner.GetFromJsonAsync<List<QuizSummaryDto>>("/api/quizzes?completed=false", JsonOptions))!);
+        var completed = Assert.Single((await owner.GetFromJsonAsync<List<QuizSummaryDto>>("/api/quizzes?completed=true", JsonOptions))!);
+        Assert.Equal(id, completed.Id.ToString());
+        Assert.NotNull(completed.CompletedAt);
     }
 
     [Fact]
