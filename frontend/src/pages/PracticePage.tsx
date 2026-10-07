@@ -13,6 +13,8 @@ import {
   ListChecks,
   LoaderCircle,
   RotateCcw,
+  Sparkles,
+  Trophy,
   Shuffle,
   Target,
   Type,
@@ -567,9 +569,16 @@ function QuizResults({ quiz }: { quiz: QuizSession }) {
         title="Look how far you’ve come"
         description={`${quizLabels[quiz.quizType]} complete. Every answer helps you learn.`}
       />
-      <section className="results-card card">
+      <section
+        className={`results-card card ${quiz.quizType === 'WEEKLY' ? 'weekly-results' : ''}`}
+      >
+        {quiz.quizType === 'WEEKLY' && (
+          <span className="achievement-label">
+            <Sparkles size={15} /> YOUR WEEK IN WORDS
+          </span>
+        )}
         <span className="results-icon">
-          <GraduationCap size={35} />
+          {quiz.quizType === 'WEEKLY' ? <Trophy size={35} /> : <GraduationCap size={35} />}
         </span>
         <h2>{accuracy >= 80 ? 'A little practice paid off' : 'You’re building something good'}</h2>
         <p>
@@ -589,17 +598,17 @@ function QuizResults({ quiz }: { quiz: QuizSession }) {
         </div>
         <div className="results-breakdown">
           <div>
-            <span className="result-dot fuchsia" />
+            <span className="result-dot purple" />
             <strong>{quiz.mastered}</strong>
             <span>Mastered</span>
           </div>
           <div>
-            <span className="result-dot peach" />
+            <span className="result-dot yellow" />
             <strong>{quiz.learning}</strong>
             <span>Still learning</span>
           </div>
           <div>
-            <span className="result-dot lavender" />
+            <span className="result-dot rose" />
             <strong>{quiz.needReview}</strong>
             <span>Need review</span>
           </div>

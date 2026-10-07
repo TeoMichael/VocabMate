@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from 'react'
 import type { ReactNode } from 'react'
-import { AlertCircle, ArrowRight, BookOpen, LoaderCircle, X } from 'lucide-react'
+import { AlertCircle, ArrowRight, BookHeart, LoaderCircle, Sparkles, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { MasteryLevel } from '../types'
 import { masteryLabels } from '../lib/format'
@@ -65,8 +65,9 @@ export function EmptyState({
 }) {
   return (
     <div className="empty-state">
-      <span className="empty-icon">
-        <BookOpen size={28} />
+      <span className="empty-icon" aria-hidden="true">
+        <BookHeart size={30} />
+        <Sparkles size={20} className="empty-spark" />
       </span>
       <h3>{title}</h3>
       <p>{description}</p>
@@ -156,15 +157,23 @@ export function Dialog({
 
 export function ProgressRing({ value, total }: { value: number; total: number }) {
   const percent = total ? Math.min(100, (value / total) * 100) : 0
+  const gradientId = useId()
   return (
     <div className="progress-ring" aria-label={`${value} of ${total} words practiced`}>
       <svg viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="var(--color-primary)" />
+            <stop offset="100%" stopColor="var(--color-purple)" />
+          </linearGradient>
+        </defs>
         <circle className="ring-track" cx="50" cy="50" r="42" />
         <circle
           className="ring-value"
           cx="50"
           cy="50"
           r="42"
+          stroke={`url(#${gradientId})`}
           strokeDasharray={`${percent * 2.639} 263.9`}
         />
       </svg>

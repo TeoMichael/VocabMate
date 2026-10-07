@@ -5,7 +5,6 @@ import {
   Check,
   CircleCheck,
   Heart,
-  Leaf,
   Plus,
   Sparkles,
   Sprout,
@@ -122,8 +121,8 @@ export default function DashboardPage() {
           <ProgressRing value={stats.todayPracticed} total={stats.dailyGoal} />
           <h3>
             {stats.todayPracticed >= stats.dailyGoal
-              ? 'A little win for today!'
-              : 'A few words go a long way'}
+              ? 'Today’s goal, beautifully done!'
+              : 'Your next little win is close'}
           </h3>
           <p>
             {stats.todayPracticed >= stats.dailyGoal
@@ -248,10 +247,15 @@ export default function DashboardPage() {
           ) : (
             <div className="gentle-empty">
               <span>
-                <Leaf size={29} />
+                <Sparkles size={30} aria-hidden="true" />
               </span>
-              <h3>Nothing needs extra review yet</h3>
-              <p>Keep practicing. Words you find tricky will appear here.</p>
+              <h3>Your review list is clear</h3>
+              <p>
+                Keep building confidence. Tricky words will appear here when they need another look.
+              </p>
+              <Link className="text-link" to="/practice">
+                Keep practicing <ArrowRight size={15} />
+              </Link>
             </div>
           )}
         </section>

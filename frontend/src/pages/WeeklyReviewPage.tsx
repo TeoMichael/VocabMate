@@ -156,6 +156,17 @@ export default function WeeklyReviewPage() {
                     ? `Add words and practice this week. Your first weekly review will bring together ${plural(resource.data.questionCount, 'question')} from your collection.`
                     : 'Add some vocabulary and practice this week. Your first weekly review will bring together the words you choose.'
                 }
+                action={
+                  <Link
+                    className="button secondary"
+                    to={resource.data.questionCount ? '/practice' : '/vocabulary/new'}
+                  >
+                    {resource.data.questionCount
+                      ? 'Keep practicing this week'
+                      : 'Add your first word'}
+                    <ArrowRight size={16} />
+                  </Link>
+                }
               />
             )}
           </section>

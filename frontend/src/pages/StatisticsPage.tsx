@@ -23,10 +23,10 @@ export default function StatisticsPage() {
     return <ErrorMessage message={resource.error} onRetry={resource.reload} />
   const { stats, quizzes } = resource.data
   const levels = [
-    { label: 'New', count: stats.new, color: 'lavender', description: 'Net score 0' },
-    { label: 'Learning', count: stats.learning, color: 'peach', description: 'Net score 1–2' },
-    { label: 'Familiar', count: stats.familiar, color: 'rose', description: 'Net score 3–4' },
-    { label: 'Mastered', count: stats.mastered, color: 'fuchsia', description: 'Net score 5+' },
+    { label: 'New', count: stats.new, color: 'coral', description: 'Net score 0' },
+    { label: 'Learning', count: stats.learning, color: 'yellow', description: 'Net score 1–2' },
+    { label: 'Familiar', count: stats.familiar, color: 'lavender', description: 'Net score 3–4' },
+    { label: 'Mastered', count: stats.mastered, color: 'purple', description: 'Net score 5+' },
   ]
   const totalAnswers = stats.correctAnswers + stats.incorrectAnswers
   const trend = stats.wordsOverTime.slice(-14)
@@ -159,12 +159,12 @@ export default function StatisticsPage() {
             </div>
             <div className="answer-counts">
               <div>
-                <span className="legend-dot fuchsia" />
+                <span className="legend-dot success-dot" />
                 <strong>{stats.correctAnswers}</strong>
                 <span>Correct answers</span>
               </div>
               <div>
-                <span className="legend-dot peach" />
+                <span className="legend-dot error-dot" />
                 <strong>{stats.incorrectAnswers}</strong>
                 <span>Missed answers</span>
               </div>
