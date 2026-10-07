@@ -22,6 +22,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CurrentUser>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<VocabularyService>();
+builder.Services.AddScoped<LearningProgressService>();
+builder.Services.AddScoped<QuizService>();
+builder.Services.AddScoped<StatisticsService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
