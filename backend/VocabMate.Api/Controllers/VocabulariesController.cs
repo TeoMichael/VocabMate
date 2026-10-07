@@ -24,7 +24,7 @@ public class VocabulariesController(VocabularyService library, CurrentUser user)
     public async Task<ActionResult<VocabularyDto>> Create(VocabularyRequest request)
     {
         var word = await library.CreateAsync(user.Id, request);
-        return CreatedAtAction(nameof(Get), new { id = word.Id }, word);
+        return Created($"/api/vocabularies/{word.Id}", word);
     }
 
     [HttpPut("{id:guid}")]

@@ -1,7 +1,10 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using VocabMate.Api.Configuration;
+using VocabMate.Api.DTOs;
 
 namespace VocabMate.Tests;
 
@@ -58,6 +61,22 @@ public class ProductionHostingTests
         Assert.False(rejectedResponse.Headers.Contains("Access-Control-Allow-Origin"));
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/health")).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/vocabularies")).StatusCode);
+    }
+
+    [Fact]
+    public async Task CreatedVocabularyLocationStaysRelativeBehindAnHttpsTerminatingProxy()
+    {
+        using var factory = new ProductionFactory();
+        using var client = factory.CreateApiClient();
+        await ApiFactory.RegisterAsync(client);
+        var response = await client.PostAsJsonAsync("/api/vocabularies",
+            new VocabularyRequest("available", "có sẵn", null, null));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var word = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var location = response.Headers.Location!;
+        Assert.False(location.IsAbsoluteUri);
+        Assert.Equal($"/api/vocabularies/{word.GetProperty("id").GetGuid()}", location.OriginalString);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync(location)).StatusCode);
     }
 
     private class ProductionFactory : ApiFactory
