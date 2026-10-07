@@ -1,5 +1,7 @@
 # VocabMate
 
+**Version 1.0.0** · [Release verification](docs/release-verification.md) · [Demo guide](docs/demo-guide.md)
+
 VocabMate is a personal English vocabulary learning application. Add words and Vietnamese meanings, organize them into topics, practice in four modes, and review the words that need more attention. A weekly test brings together vocabulary from the previous seven days and older weak words.
 
 The project keeps a small, readable architecture suitable for a university software project. The frontend talks to the real REST API, and PostgreSQL stores each user's own library and learning history.
@@ -176,12 +178,14 @@ If the frontend receives connection errors, confirm the API is running on port 5
 dotnet build backend/VocabMate.sln
 dotnet test backend/VocabMate.sln
 cd frontend
+npm ci
+npm run test
 npm run build
 npm run lint
 npm run format:check
 ```
 
-The frontend production bundle is written to `frontend/dist`. Test coverage focuses on authentication, ownership, library operations, answer scoring, mastery, weak-word detection, and weekly selection. The audit verification includes 47 passing backend tests, 179 live PostgreSQL assertions, and 11 isolated startup-helper assertions. A clean isolated `npm ci` reported zero vulnerabilities. Docker configuration was stub-tested because Docker is unavailable on this machine; actual container startup was not tested. See [verification details](docs/verification.md) for the recorded build and browser checks.
+The frontend production bundle is written to `frontend/dist`. Release verification passed 59 backend tests in both Debug and Release, two frontend regression tests, 179 live PostgreSQL assertions, and 11 isolated startup-helper assertions. A clean `npm ci` reported zero vulnerabilities, and the NuGet audit reported no vulnerable packages in either backend project, including transitive dependencies. Both committed migrations were applied from zero to a separate PostgreSQL database. Docker configuration was stub-tested because Docker is unavailable on this machine; actual container startup was not tested. See [release verification](docs/release-verification.md) for commands, browser coverage, and limits. The [earlier audit](docs/verification.md) is retained as a historical record.
 
 With the API and PostgreSQL running, optional HTTP smoke checks use PowerShell 7 to create fresh verification accounts and exercise the live API:
 
@@ -248,6 +252,16 @@ The original development workspace includes ignored `.local/` tools because Dock
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .local/start-postgres.ps1` starts it; `.local/stop-postgres.ps1` stops it.
 - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-local.ps1` can reuse that ignored database configuration.
 - The frontend helper falls back to `.local/npm/package/bin/npm-cli.js` when npm is absent from `PATH` and Node is available.
+
+## Known V1 limitations
+
+- Eight-hour access tokens have no refresh flow or server-side revocation. Logout removes the token from the current browser tab.
+- Daily goals reset at 00:00 UTC (07:00 in Vietnam); the dashboard states the reset time. Growth charts use UTC dates.
+- Vocabulary lists load the user's complete library without pagination. Quiz history is capped at 50 sessions per completed/unfinished view. This is intended for a student-scale personal library.
+- Meaning comparison uses normalized saved aliases, not fuzzy matching. Flashcards record the learner's self-assessment.
+- Production hosting, HTTPS termination, rate limiting, backups, and monitoring require deployment work. Development HTTP launch commands are for local use.
+- Docker configuration was inspected and stub-tested; actual Docker execution was unavailable. Real PostgreSQL migrations and API flows were tested independently.
+- Accessibility received targeted keyboard, labeling, contrast, and responsive checks, not a formal compliance certification.
 
 ## Future development
 

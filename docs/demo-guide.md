@@ -47,15 +47,20 @@ Add `travel` separately with its Travel topic, then edit the two example sentenc
 
 ## Presentation walkthrough
 
-1. **Overview:** show Mia's personal library, the daily practice suggestion, mastery totals, and the ten-word daily goal. Explain that the goal counts distinct words practiced that UTC day, while answer totals count every accepted answer.
-2. **My vocabulary:** search for `environment`, filter by topic or mastery, and open its edit form. Explain optional examples and topic ownership. Show the import dialog's `word - meaning` format and invalid-line feedback.
-3. **Practice:** point out the four modes. Reveal a flashcard before self-assessment; choose a multiple-choice meaning; type a Vietnamese meaning; and type an English word in reverse quiz. For `acquire`, either `đạt được` or `có được` is accepted. Case and extra spaces are normalized; Vietnamese accents remain significant.
-4. **Saved session:** leave a partly answered session, then use its Resume action on the Practice page. The first unanswered question opens with earlier answers already saved.
-5. **Words to review:** explain the rule `wrongCount >= 2 && wrongCount >= correctCount`. Start focused practice from that section; the session includes only qualifying words. A single mistake alone does not make a word weak.
-6. **Weekly review:** open the saved six-question result. Show 5/6, 83% accuracy, and Review mistakes. The `travel` mistake displays `du lịch` as the correct meaning. Explain selection priority: vocabulary added during the previous seven days, weak words, previously reviewed words, then any remaining words.
-7. **Statistics:** show current mastery counts, recorded answer accuracy, completed quizzes, and vocabulary added over time. Explain the deterministic mastery score `max(correctCount - wrongCount, 0)` and its four thresholds.
-8. **Mobile and keyboard:** show vocabulary cards at a narrow width, open/close the mobile navigation, and use Tab/Shift+Tab/Escape. In a typed quiz, Enter checks the answer and Next word returns to the new prompt.
-9. **Persistence:** log out and log back in. The vocabulary and progress come from PostgreSQL and remain available after the browser session ends.
+1. **Login:** sign in with your own local demo account. Credentials stay outside Git.
+2. **Overview:** show vocabulary, daily suggestions, mastery totals, and the ten-word daily goal. The goal counts distinct words since 00:00 UTC; every accepted answer contributes to answer totals.
+3. **Add a word:** enter `travel`, its Vietnamese meaning, example, and topic. Show the saved confirmation.
+4. **Bulk import:** paste the five Daily English lines above plus a malformed line. Show valid entries saved and the original invalid line number returned for correction.
+5. **Library and topics:** search Vietnamese text, combine topic/mastery filters, and edit an example. Rename a topic; a topic with words has deletion disabled. Use disposable words/topics if demonstrating deletion.
+6. **Practice selection:** point out all four modes and choose a short session.
+7. **Question modes:** reveal a flashcard before self-assessment, then demonstrate multiple choice or a typed question. For `acquire`, either `đạt được` or `có được` is accepted. Case and extra spaces are normalized; accents remain significant. An alias cannot appear as a supposedly wrong multiple-choice option.
+8. **Saved session and progress:** leave a partly answered session, Resume, and reload. Earlier answers remain saved and the first unanswered question opens. Explain `max(correctCount - wrongCount, 0)` and the four mastery thresholds.
+9. **Words to review:** explain `wrongCount >= 2 && wrongCount >= correctCount`. In a fresh one-word account, two flashcard misses make it weak; three correct focused answers make it leave the list. Use a separate rehearsal account so you do not alter your prepared presentation history.
+10. **Weekly review:** explain recent → weak → previously reviewed → remaining word selection, with at most 20 distinct words. Use an eligible local account prepared below, or open Mia's saved result.
+11. **Finish or resume the weekly test:** demonstrate mixed modes and leave/resume once. One deliberate mistake makes feedback and mistake review visible.
+12. **Results:** show the saved score and Review mistakes. Mia's existing six-question result is 5/6 (83%), with `travel` → `du lịch`. Completing a review starts the next seven-day wait.
+13. **Statistics:** show real mastery counts, answer accuracy, completed quizzes, and vocabulary growth. Reopen a completed result from history.
+14. **Mobile, keyboard, and persistence:** narrow the window, use the drawer, Tab/Shift+Tab/Escape, and Enter in typed quizzes. Log out, visit a protected page, log in, and show that the library persisted.
 
 Practicing during the presentation changes the persisted counters. The saved weekly result remains 5/6, but current mastery summaries can change as the same words receive later answers.
 
@@ -63,10 +68,20 @@ Practicing during the presentation changes the persisted counters. The saved wee
 
 New accounts unlock their first weekly review seven days after registration. Later reviews unlock seven days after the last completed weekly test. An unfinished weekly review can be resumed from its saved question snapshots, even if live vocabulary is later removed.
 
-For browser verification, only the local demonstration account's registration date was backdated to exercise the weekly workflow immediately. The application rule was not changed and cloned projects still enforce seven days. No public endpoint exists for changing that registration date.
+For verification, only newly created local demonstration/verification accounts had their registration dates backdated. The application rule was not changed and cloned projects enforce seven days. No public endpoint exists for changing that date.
+
+To rehearse without waiting, create a **separate development database** using the README migration steps, register a new disposable demonstration account, and add its words. In your PostgreSQL SQL editor connected to that database, replace the example email below with that account's email and run:
+
+```sql
+UPDATE "Users"
+SET "CreatedAt" = CURRENT_TIMESTAMP - INTERVAL '8 days'
+WHERE "NormalizedEmail" = UPPER('your-new-demo-email@example.test');
+```
+
+Confirm that exactly one intended demonstration row changed, then reload Weekly Review. Do this only for the new local rehearsal account, never production or another person's account. Completion still starts the normal seven-day cooldown. Mia's retained account already has a result to present without changing timestamps or waiting for a new test.
 
 ## Evidence and scope
 
-The audit ran 47 backend tests, 179 real PostgreSQL API assertions, and 11 isolated startup-helper assertions. A clean dependency install reported zero npm vulnerabilities. Actual Docker container startup was unavailable on this machine; portable PostgreSQL supplied the live database checks.
+Final release verification passed 59 backend tests, two frontend regression tests, 179 real PostgreSQL API assertions on a fresh migrated database, and 11 isolated startup-helper assertions. Clean npm and NuGet audits reported no vulnerable packages. Actual Docker container startup was unavailable; portable PostgreSQL supplied the live database checks.
 
-See [verification](verification.md), [business rules](business-rules.md), and [the screenshot gallery](../README.md#screenshots). V1 uses deterministic rules and stored vocabulary; AI definitions, pronunciation scoring, social features, and complex gamification are outside this demonstration.
+See [release verification](release-verification.md), [business rules](business-rules.md), and [the screenshot gallery](../README.md#screenshots). V1 uses deterministic rules and stored vocabulary; AI definitions, pronunciation scoring, social features, and complex gamification are outside this demonstration.

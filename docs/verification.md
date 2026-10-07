@@ -1,5 +1,7 @@
 # Verification
 
+This file records the earlier audit and visual refinement. See [V1 release verification](release-verification.md) for the final release checks, fresh database test, expanded regression suite, and resolved dependency advisories.
+
 The existing MVP was audited and polished on October 7, 2026 using .NET 8, Node 24, and workspace-local PostgreSQL 18.6. The application uses the real API; no shared account or mock vocabulary is seeded by the repository.
 
 ## Builds and automated checks

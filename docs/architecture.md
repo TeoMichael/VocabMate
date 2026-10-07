@@ -20,6 +20,8 @@ A central Axios instance owns the API base URL and attaches the bearer token. Au
 
 The browser renders quiz prompts and submits answers. It does not calculate authoritative scores, mastery levels, weak status, or weekly eligibility. Those decisions belong to the server, which prevents accidental differences between pages or clients.
 
+A temporary network failure during the initial account check preserves a locally unexpired session. API-driven pages then show a retry message. A genuine 401 clears the stored session and returns to login. The cached identity never grants API access; every protected request still validates the JWT on the server.
+
 ## Backend responsibilities
 
 - **Controllers:** HTTP routes, request validation, authenticated user identification, and suitable response codes.

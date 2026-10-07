@@ -22,12 +22,12 @@ Each accepted answer increases either `CorrectCount` or `WrongCount`, then updat
 effectiveCorrect = max(CorrectCount - WrongCount, 0)
 ```
 
-| Effective correct answers | Mastery |
-| --- | --- |
-| 0 | NEW |
-| 1–2 | LEARNING |
-| 3–4 | FAMILIAR |
-| 5 or more | MASTERED |
+| Effective correct answers | Mastery  |
+| ------------------------- | -------- |
+| 0                         | NEW      |
+| 1–2                       | LEARNING |
+| 3–4                       | FAMILIAR |
+| 5 or more                 | MASTERED |
 
 An incorrect answer can lower mastery by reducing effective progress. For example, five correct and zero wrong means `MASTERED`; five correct and one wrong means `FAMILIAR`. Counters retain the full history while this simple net score reflects setbacks. A word with past answers can return to `NEW`; the label describes current mastery, not whether it has ever been seen.
 
@@ -49,14 +49,14 @@ For meaning entry, slash (`/`) and semicolon (`;`) separate accepted aliases. Wi
 
 ## Learning modes
 
-| Mode | Prompt and answer rule |
-| --- | --- |
-| FLASHCARD | Shows the English word. The user must reveal the meaning before submitting “I know this” or “I don't know.” The server records that self-assessment. |
+| Mode            | Prompt and answer rule                                                                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FLASHCARD       | Shows the English word. The user must reveal the meaning before submitting “I know this” or “I don't know.” The server records that self-assessment.        |
 | MULTIPLE_CHOICE | Shows the word with its saved meaning and distinct distractor meanings from the same user's library. The selected saved option is compared to the solution. |
-| FILL_MEANING | Shows the word; the typed meaning is compared using the normalization and aliases above. |
-| REVERSE | Shows the meaning; the typed English word is normalized and compared to the saved word. |
+| FILL_MEANING    | Shows the word; the typed meaning is compared using the normalization and aliases above.                                                                    |
+| REVERSE         | Shows the meaning; the typed English word is normalized and compared to the saved word.                                                                     |
 
-Multiple choice offers two to four distinct meanings, depending on the user's vocabulary. If only one distinct meaning exists, that question falls back to `FILL_MEANING`; duplicate options are never used to fill four slots. Distractors cannot come from another user's data. No AI is required.
+Multiple choice offers two to four distinct meanings, depending on the user's vocabulary. Distractors are excluded when any normalized slash/semicolon alias overlaps an accepted meaning of the solution. For example, `mua hàng` cannot be a wrong option for `mua / mua hàng`. If no honest distractor remains, that question falls back to `FILL_MEANING`; duplicate options are never used to fill four slots. Distractors cannot come from another user's data. No AI is required.
 
 ## Sessions and scoring
 
@@ -74,7 +74,7 @@ The daily goal is ten distinct vocabulary IDs with accepted answers during the c
 
 Regular practice initially reserves roughly two thirds of its slots for previously reviewed words and one third for unreviewed words, then fills unused slots from either group. Reviewed words prioritize weak status, lower mastery, and older review time. Unreviewed words use creation order.
 
-The API is authoritative for the date boundary. The UI may display dates using the browser's locale, but the daily count resets at midnight UTC. There is no streak system in V1.
+The API is authoritative for the date boundary. The dashboard explicitly shows "Resets at 00:00 UTC" (07:00 in Vietnam). Statistics use UTC date labels for growth buckets so western browser timezones cannot move a bucket to the previous date. Event timestamps still display in the browser's locale. Keeping this common boundary avoids introducing timezone preferences or trusting client clocks in V1. There is no streak system.
 
 ## Weekly availability
 
