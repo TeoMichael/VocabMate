@@ -13,20 +13,21 @@ The project keeps a small, readable architecture suitable for a university softw
 - Per-word progress, four mastery levels, and practice for weak words.
 - Daily practice recommendations and a goal of ten distinct words per UTC day.
 - Weekly reviews of up to twenty distinct words, results, and mistake review.
+- Saved unfinished practice sessions, including weekly reviews, that can be resumed.
 - Dashboard and statistics for mastery, accuracy, completed quizzes, and vocabulary growth.
-- Responsive pages with loading, empty, validation, and error states.
+- A soft pink learning interface, mobile vocabulary cards, keyboard navigation, and loading, empty, validation, and error states.
 
 ## Technology and architecture
 
-| Part | Technology |
-| --- | --- |
-| Frontend | React, Vite, TypeScript, Tailwind CSS, React Router, Axios |
-| Backend | ASP.NET Core Web API, .NET 8, Entity Framework Core 8 |
-| Authentication | Password hashing and eight-hour JWT access tokens |
-| Database | PostgreSQL with EF Core migrations |
-| Development | Git, GitHub, optional Docker Compose, backend automated tests |
+| Part           | Technology                                                    |
+| -------------- | ------------------------------------------------------------- |
+| Frontend       | React, Vite, TypeScript, Tailwind CSS, React Router, Axios    |
+| Backend        | ASP.NET Core Web API, .NET 8, Entity Framework Core 8         |
+| Authentication | Password hashing and eight-hour JWT access tokens             |
+| Database       | PostgreSQL with EF Core migrations                            |
+| Development    | Git, GitHub, optional Docker Compose, backend automated tests |
 
-Controllers handle HTTP requests, services implement the learning rules, and EF Core accesses the database directly. DTOs keep database entities out of API responses. A central Axios client attaches the JWT, and protected React routes handle the signed-in experience. See [architecture](docs/architecture.md), [database design](docs/database.md), and [business rules](docs/business-rules.md).
+Controllers handle HTTP requests, services implement the learning rules, and EF Core accesses the database directly. DTOs keep database entities out of API responses. A central Axios client attaches the JWT, and protected React routes handle the signed-in experience. See [architecture](docs/architecture.md), [database design](docs/database.md), [business rules](docs/business-rules.md), and the [design system](docs/design-system.md). The [demo guide](docs/demo-guide.md) explains how to present the complete learning workflow.
 
 ## Project structure
 
@@ -86,28 +87,32 @@ For an existing PostgreSQL server, create a `vocabmate` database owned by a dedi
 
 ## Environment configuration
 
-Copy `backend/VocabMate.Api/appsettings.Example.json` to `backend/VocabMate.Api/appsettings.Development.json`. Fill `ConnectionStrings:DefaultConnection` using your own host, port, database, username, and password. Set `Jwt:Key` to a cryptographically random secret of at least 64 bytes. Keep `Jwt:Issuer` as `VocabMate`, `Jwt:Audience` as `VocabMate.Web`, and `FrontendUrl` as `http://localhost:5173` for local development.
+Choose either helper setup or manual setup. Both create the same ignored `backend/VocabMate.Api/appsettings.Development.json` configuration.
 
-The development file is ignored by Git. Do not add credentials to `appsettings.json`, example files, source code, documentation, or commits.
-
-On Windows, the helper can read the ignored Docker `.env` file and generate the JWT key for you:
+**Windows helper:** after configuring the Docker `.env` file, run:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-local.ps1 -UseDocker
 ```
 
-It preserves existing development configuration. To use another database, set `ConnectionStrings__DefaultConnection` in your shell before calling the helper without `-UseDocker`. The helper never prints the connection string or signing key.
+The helper reads Docker Compose's resolved database environment and published port, and generates a random 64-byte JWT key when one is missing. It preserves existing configured values and fills a blank copied example file. A complete configuration remains unchanged. Invalid JSON or an existing key shorter than the API's 32-byte minimum is rejected without overwriting the file. The helper never prints credentials or signing keys.
+
+For another PostgreSQL server, supply `ConnectionStrings__DefaultConnection` through your shell and call the helper without `-UseDocker`. In this original workspace, it can instead reuse the ignored portable database configuration described below.
+
+**Manual setup:** copy `backend/VocabMate.Api/appsettings.Example.json` to `backend/VocabMate.Api/appsettings.Development.json`. Fill `ConnectionStrings:DefaultConnection` using your own host, port, database, username, and password. Set `Jwt:Key` to a cryptographically random secret of at least 64 bytes. Keep `Jwt:Issuer` as `VocabMate`, `Jwt:Audience` as `VocabMate.Web`, and `FrontendUrl` as `http://localhost:5173` for local development.
+
+The development file is ignored by Git. Do not add credentials to `appsettings.json`, example files, source code, documentation, or commits.
 
 The API also accepts environment variables, which override JSON configuration:
 
-| Variable | Purpose |
-| --- | --- |
-| `ConnectionStrings__DefaultConnection` | PostgreSQL connection string |
-| `Jwt__Key` | Random JWT signing secret |
-| `Jwt__Issuer` | Token issuer, `VocabMate` |
-| `Jwt__Audience` | Token audience, `VocabMate.Web` |
-| `FrontendUrl` | Allowed browser origin, normally `http://localhost:5173` |
-| `ASPNETCORE_ENVIRONMENT` | Set to `Development` for local JSON configuration and Swagger |
+| Variable                               | Purpose                                                       |
+| -------------------------------------- | ------------------------------------------------------------- |
+| `ConnectionStrings__DefaultConnection` | PostgreSQL connection string                                  |
+| `Jwt__Key`                             | Random JWT signing secret                                     |
+| `Jwt__Issuer`                          | Token issuer, `VocabMate`                                     |
+| `Jwt__Audience`                        | Token audience, `VocabMate.Web`                               |
+| `FrontendUrl`                          | Allowed browser origin, normally `http://localhost:5173`      |
+| `ASPNETCORE_ENVIRONMENT`               | Set to `Development` for local JSON configuration and Swagger |
 
 Copy `frontend/.env.example` to `frontend/.env` if you need to customize the API URL. Its default is:
 
@@ -119,7 +124,7 @@ VITE_API_URL=http://localhost:5080/api
 
 ## Apply migrations
 
-Start PostgreSQL first. From the repository root, use Development configuration and apply the committed migration:
+Start PostgreSQL first. From the repository root, use Development configuration and apply the committed migrations:
 
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT = 'Development'
@@ -176,7 +181,7 @@ npm run lint
 npm run format:check
 ```
 
-The frontend production bundle is written to `frontend/dist`. Test coverage focuses on authentication, ownership, library operations, answer scoring, mastery, weak-word detection, and weekly selection. Check the actual command output for the result; successful build commands do not establish that a production deployment has been configured.
+The frontend production bundle is written to `frontend/dist`. Test coverage focuses on authentication, ownership, library operations, answer scoring, mastery, weak-word detection, and weekly selection. The audit verification includes 47 passing backend tests, 179 live PostgreSQL assertions, and 11 isolated startup-helper assertions. A clean isolated `npm ci` reported zero vulnerabilities. Docker configuration was stub-tested because Docker is unavailable on this machine; actual container startup was not tested. See [verification details](docs/verification.md) for the recorded build and browser checks.
 
 With the API and PostgreSQL running, optional HTTP smoke checks use PowerShell 7 to create fresh verification accounts and exercise the live API:
 
@@ -190,20 +195,21 @@ This script leaves those uniquely named verification accounts in the local datab
 
 All protected requests need `Authorization: Bearer <token>`. The frontend adds this automatically. JSON properties use camelCase; enum values use uppercase strings. For full payloads and responses, see [the API contract](docs/api-contract.md).
 
-| Route | Purpose |
-| --- | --- |
-| `POST /api/auth/register`, `POST /api/auth/login` | Obtain a token and user details |
-| `GET /api/auth/me` | Current authenticated user |
-| `GET/POST /api/topics`, `PUT/DELETE /api/topics/{id}` | Topic management |
-| `GET/POST /api/vocabularies`, `GET/PUT/DELETE /api/vocabularies/{id}` | Vocabulary management |
-| `POST /api/vocabularies/import` | Import one `word - meaning` pair per line |
-| `POST /api/practice` | Create regular, weak-word, or weekly practice |
-| `GET /api/practice/weekly` | Weekly availability and seven-day window |
-| `GET /api/quizzes`, `GET /api/quizzes/{id}` | Completed history, saved session, and results |
-| `POST /api/quizzes/{id}/answers` | Submit an answer and update progress |
-| `POST /api/quizzes/{id}/questions/{questionId}/reveal` | Reveal a flashcard before self-assessment |
-| `GET /api/statistics` | Dashboard, daily goal, accuracy, and growth |
-| `GET /api/health` | API availability |
+| Route                                                                 | Purpose                                                  |
+| --------------------------------------------------------------------- | -------------------------------------------------------- |
+| `POST /api/auth/register`, `POST /api/auth/login`                     | Obtain a token and user details                          |
+| `GET /api/auth/me`                                                    | Current authenticated user                               |
+| `GET/POST /api/topics`, `PUT/DELETE /api/topics/{id}`                 | Topic management                                         |
+| `GET/POST /api/vocabularies`, `GET/PUT/DELETE /api/vocabularies/{id}` | Vocabulary management                                    |
+| `POST /api/vocabularies/import`                                       | Import one `word - meaning` pair per line                |
+| `POST /api/practice`                                                  | Create regular, weak-word, or weekly practice            |
+| `GET /api/practice/weekly`                                            | Weekly availability, active review, and seven-day window |
+| `GET /api/quizzes`, `GET /api/quizzes/{id}`                           | Completed history, saved session, and results            |
+| `GET /api/quizzes?completed=false`                                    | Unfinished sessions available to resume                  |
+| `POST /api/quizzes/{id}/answers`                                      | Submit an answer and update progress                     |
+| `POST /api/quizzes/{id}/questions/{questionId}/reveal`                | Reveal a flashcard before self-assessment                |
+| `GET /api/statistics`                                                 | Dashboard, daily goal, accuracy, and growth              |
+| `GET /api/health`                                                     | API availability                                         |
 
 Bulk import example:
 
@@ -214,17 +220,23 @@ available - có sẵn
 employee - nhân viên
 ```
 
-Valid lines become separate entries. Invalid lines return their line numbers and reasons so the user can correct them.
+Valid lines become separate entries. Invalid lines return their original line numbers and reasons so the user can correct them. Imports allow up to 500 nonblank lines; blank lines do not consume that limit.
 
 ## Screenshots
 
-These screenshots were captured during browser verification using vocabulary entered through the application and stored in PostgreSQL.
+These screenshots show the pink interface with real vocabulary entered through the application and stored in PostgreSQL. The local demonstration account is retained only in this development workspace; it is not seeded in cloned repositories. Follow the [demo guide](docs/demo-guide.md) to recreate the workflow with your own account.
 
 ![Learning dashboard](docs/screenshots/dashboard.jpg)
 
-[Mobile vocabulary layout](docs/screenshots/mobile-vocabulary.jpg)
+![Personal vocabulary library](docs/screenshots/vocabulary.jpg)
 
-Placeholder: add screenshots of practice modes and weekly results before your project presentation.
+![Vocabulary practice](docs/screenshots/practice.jpg)
+
+![Weekly review results](docs/screenshots/weekly-results.jpg)
+
+![Mobile vocabulary cards](docs/screenshots/mobile-vocabulary.jpg)
+
+More views: [login](docs/screenshots/login.jpg), [practice modes](docs/screenshots/practice-modes.jpg), [flashcards](docs/screenshots/flashcard.jpg), [multiple choice](docs/screenshots/multiple-choice.jpg), [answer feedback](docs/screenshots/quiz-feedback.jpg), [weak words](docs/screenshots/weak-words.jpg), [weekly review](docs/screenshots/weekly-review.jpg), [statistics](docs/screenshots/statistics.jpg), and [mobile practice](docs/screenshots/mobile-practice.jpg).
 
 ## Optional appendix: this workspace's portable tools
 
@@ -232,6 +244,7 @@ The original development workspace includes ignored `.local/` tools because Dock
 
 - Portable PostgreSQL 18.6 listens only on `127.0.0.1:55432`.
 - `.local/database.json` stores its generated credentials and executable paths.
+- `.local/demo-account.json` stores the retained local demo login. Its credentials are absent from Git; cloned projects should register their own account.
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .local/start-postgres.ps1` starts it; `.local/stop-postgres.ps1` stops it.
 - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-local.ps1` can reuse that ignored database configuration.
 - The frontend helper falls back to `.local/npm/package/bin/npm-cli.js` when npm is absent from `PATH` and Node is available.
