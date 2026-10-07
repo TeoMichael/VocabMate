@@ -8,9 +8,9 @@
 - [x] 6. Weekly review: seven-day selection, results and mistakes
 - [x] 7. Dashboard and statistics: daily goal, summaries and charts
 - [x] 8. Polish: responsive UI, validation, documentation and browser fixes
-- [ ] 9. GitHub: inspect account/repository, secrets review, push and verification
+- [x] 9. GitHub: inspect account/repository, secrets review, push and verification
 
-Implementation milestones 1–8 are complete. Final frontend build/lint/format checks, the backend Release build, all 44 tests, and a clean isolated npm install passed; see [verification.md](verification.md). GitHub creation, push, and remote verification remain pending.
+All nine milestones are complete. Frontend build/lint/format checks, the backend Release build, all 44 tests, and a clean isolated npm install passed; see [verification.md](verification.md). The private personal repository [TeoMichael/VocabMate](https://github.com/TeoMichael/VocabMate) was created, `main` was pushed, and the remote commit was checked against local HEAD.
 
 ## Environment inspection
 

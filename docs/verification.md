@@ -34,7 +34,7 @@ Screenshots are saved in `docs/screenshots/`. The browser verification account w
 - Final backend Release build: passed, zero warnings/errors.
 - Final backend test rerun: 44 passed, zero failed/skipped.
 - Clean isolated `npm ci` using the current `package-lock.json`: passed, zero vulnerabilities reported.
-- GitHub repository creation, push, and remote commit verification: pending.
+- GitHub: created [TeoMichael/VocabMate](https://github.com/TeoMichael/VocabMate) as a private personal repository, pushed `main`, and verified the GitHub commit SHA matched local HEAD.
 
 ## Secrets
 
