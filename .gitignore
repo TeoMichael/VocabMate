@@ -15,6 +15,7 @@ appsettings.Local.json
 .idea/
 .vscode/
 .local/
+.vercel/
 *.log
 *.db
 *.db-shm

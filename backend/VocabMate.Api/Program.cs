@@ -11,7 +11,7 @@ using VocabMate.Api.Entities;
 using VocabMate.Api.Helpers;
 using VocabMate.Api.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--migrate").ToArray());
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddControllers().AddJsonOptions(options =>
@@ -42,7 +42,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 });
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
-    policy.WithOrigins(builder.Configuration["FrontendUrl"] ?? "http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
+{
+    var origin = builder.Environment.IsProduction()
+        ? ProductionSettings.FrontendOrigin(builder.Configuration["FrontendUrl"])
+        : builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
+    policy.WithOrigins(origin).AllowAnyHeader().AllowAnyMethod();
+}));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -60,11 +65,38 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+if (app.Environment.IsProduction())
+    ProductionSettings.FrontendOrigin(app.Configuration["FrontendUrl"]);
 if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("DefaultConnection")))
     throw new InvalidOperationException("Configure ConnectionStrings__DefaultConnection using environment variables or an ignored appsettings.Development.json.");
 var jwtSettings = app.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? new JwtSettings();
 if (Encoding.UTF8.GetByteCount(jwtSettings.Key) < 32 || string.IsNullOrWhiteSpace(jwtSettings.Issuer) || string.IsNullOrWhiteSpace(jwtSettings.Audience))
     throw new InvalidOperationException("Configure Jwt__Key with a random key of at least 32 bytes, and Jwt__Issuer/Jwt__Audience.");
+if (args.Contains("--migrate"))
+{
+    try
+    {
+        ProductionSettings.ValidateMigrationTarget(app.Configuration.GetConnectionString("DefaultConnection")!,
+            app.Configuration["Migration:ExpectedHost"], app.Configuration["Migration:ExpectedDatabase"], app.Environment.IsProduction());
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        if (!await db.Database.CanConnectAsync()) throw new InvalidOperationException("Database unavailable.");
+        var applied = await db.Database.GetAppliedMigrationsAsync();
+        var pending = await db.Database.GetPendingMigrationsAsync();
+        Console.WriteLine($"Applied migrations: {string.Join(", ", applied)}");
+        Console.WriteLine($"Pending migrations: {string.Join(", ", pending)}");
+        await db.Database.MigrateAsync();
+        Console.WriteLine("Database migrations completed.");
+        return;
+    }
+    catch (Exception exception)
+    {
+        // Provider exception messages can contain database or connection details.
+        Console.Error.WriteLine($"Migration failed ({exception.GetType().Name}). Check the target, TLS, and database access in the hosting settings.");
+        Environment.ExitCode = 1;
+        return;
+    }
+}
 app.UseMiddleware<ExceptionMiddleware>();
 if (app.Environment.IsDevelopment())
 {

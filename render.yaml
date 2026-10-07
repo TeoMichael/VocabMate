@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: vocabmate-api
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeployTrigger: 'off'
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Jwt__Issuer
+        value: VocabMate
+      - key: Jwt__Audience
+        value: VocabMate.Web
+      - key: Jwt__Key
+        generateValue: true
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: FrontendUrl
+        sync: false
