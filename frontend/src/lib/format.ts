@@ -21,9 +21,10 @@ export const modeLabels: Record<PracticeMode, string> = {
 }
 
 export function formatDate(value: string, options?: Intl.DateTimeFormatOptions) {
-  return new Intl.DateTimeFormat('en', options || { month: 'short', day: 'numeric' }).format(
-    new Date(value),
-  )
+  const displayOptions = { ...(options || { month: 'short', day: 'numeric' }) }
+  // Date-only statistics buckets are UTC calendar labels, not local instants.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) displayOptions.timeZone = 'UTC'
+  return new Intl.DateTimeFormat('en', displayOptions).format(new Date(value))
 }
 
 export function dateRange(start: string, end: string) {

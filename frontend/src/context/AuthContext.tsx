@@ -23,7 +23,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (active) setUser(value)
         })
         .catch(() => {
-          if (active) setUser(null)
+          // A temporary network failure is not an authentication rejection.
+          // The API client clears invalid sessions on 401; pages offer network retries.
+          if (active && !readAuth()) setUser(null)
         })
         .finally(() => {
           if (active) setLoading(false)

@@ -540,7 +540,7 @@ export function PracticeSessionPage() {
           }}
         />
         {answered && (
-          <button type="button" className="button primary next-question" onClick={next}>
+          <button type="button" className="button primary next-question" onClick={next} autoFocus>
             {quiz.completedAt ? 'See my results' : 'Next word'}
             <ArrowRight size={18} />
           </button>

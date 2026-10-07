@@ -85,7 +85,7 @@ export default function StatisticsPage() {
               {stats.todayPracticed}
               <em> / {stats.dailyGoal}</em>
             </strong>
-            <small>A daily moment for your words</small>
+            <small>Distinct words since 00:00 UTC</small>
           </div>
         </div>
       </div>
@@ -181,7 +181,7 @@ export default function StatisticsPage() {
       <section className="card word-trend-card">
         <SectionHeading
           title="New words along the way"
-          description="Words added to your vocabulary over the last 14 days."
+          description="Words added to your vocabulary over the last 14 UTC days."
         />
         <div
           className="trend-chart"

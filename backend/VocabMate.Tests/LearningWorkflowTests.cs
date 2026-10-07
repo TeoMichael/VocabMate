@@ -81,6 +81,37 @@ public class LearningWorkflowTests : IDisposable
         Assert.Equal(LearningMode.FILL_MEANING, Assert.Single(quiz.Questions).Mode);
     }
 
+    [Theory]
+    [InlineData("mua / mua hàng", "MUA HÀNG")]
+    [InlineData("mua", "mua; mua sắm")]
+    [InlineData("có được; đạt được", "ĐẠT   ĐƯỢC / giành được")]
+    public async Task MultipleChoiceExcludesOverlappingMeaningAliases(string meaning, string overlapping)
+    {
+        var target = AddWord("target", meaning);
+        AddWord("synonym", overlapping);
+        AddWord("different", "khác");
+        var quiz = await quizzes.Start(user.Id, new StartPracticeRequest { Mode = LearningMode.MULTIPLE_CHOICE });
+        var question = quiz.Questions.Single(q => q.VocabularyId == target.Id);
+        Assert.Equal(LearningMode.MULTIPLE_CHOICE, question.Mode);
+        Assert.Equal(2, question.Options.Length);
+        Assert.Contains(meaning, question.Options);
+        Assert.Contains("khác", question.Options);
+        Assert.DoesNotContain(overlapping, question.Options);
+    }
+
+    [Fact]
+    public async Task MultipleChoiceFallsBackWhenEveryOtherMeaningIsAnAcceptedAlias()
+    {
+        AddWord("purchase", "mua / mua hàng");
+        AddWord("buy", "MUA HÀNG");
+        var quiz = await quizzes.Start(user.Id, new StartPracticeRequest { Mode = LearningMode.MULTIPLE_CHOICE });
+        Assert.All(quiz.Questions, question =>
+        {
+            Assert.Equal(LearningMode.FILL_MEANING, question.Mode);
+            Assert.Empty(question.Options);
+        });
+    }
+
     [Fact]
     public async Task WeeklyUnlocksAfterSevenDaysAndResumesThenLocksAfterCompletion()
     {
@@ -167,6 +198,44 @@ public class LearningWorkflowTests : IDisposable
     }
 
     [Fact]
+    public async Task DailyProgressUsesUtcMidnightAndSupportsMoreThanTheGoal()
+    {
+        clock.Now = new DateTimeOffset(2026, 10, 7, 23, 59, 0, TimeSpan.Zero);
+        for (var index = 0; index < 11; index++) AddWord($"word{index}", $"nghĩa {index}");
+        var quiz = await quizzes.Start(user.Id, new StartPracticeRequest { Mode = LearningMode.REVERSE, Size = 20 });
+        foreach (var question in quiz.Questions)
+        {
+            var solution = (await db.QuizResults.FindAsync(question.Id))!.CorrectAnswer;
+            await quizzes.Answer(user.Id, quiz.Id, new AnswerRequest { QuestionId = question.Id, Answer = solution });
+        }
+        var stats = await new StatisticsService(db, clock).Get(user.Id);
+        Assert.Equal(11, stats.TodayPracticed);
+        Assert.Equal(10, stats.DailyGoal);
+        Assert.Equal(100, stats.OverallAccuracy);
+
+        clock.Now = clock.Now.AddMinutes(1);
+        Assert.Equal(0, (await new StatisticsService(db, clock).Get(user.Id)).TodayPracticed);
+        var next = await quizzes.Start(user.Id, new StartPracticeRequest { Mode = LearningMode.REVERSE, Size = 1 });
+        var current = Assert.Single(next.Questions);
+        await quizzes.Answer(user.Id, next.Id, new AnswerRequest
+        {
+            QuestionId = current.Id, Answer = (await db.QuizResults.FindAsync(current.Id))!.CorrectAnswer
+        });
+        Assert.Equal(1, (await new StatisticsService(db, clock).Get(user.Id)).TodayPracticed);
+    }
+
+    [Fact]
+    public async Task EmptyStatisticsHaveFiniteZeroValues()
+    {
+        var stats = await new StatisticsService(db, clock).Get(user.Id);
+        Assert.Equal(0, stats.TotalVocabulary);
+        Assert.Equal(0, stats.OverallAccuracy);
+        Assert.Equal(0, stats.TotalQuizzes);
+        Assert.Equal(0, stats.TodayPracticed);
+        Assert.All(stats.WordsOverTime, point => Assert.Equal(0, point.Count));
+    }
+
+    [Fact]
     public async Task ConcurrentStaleAnswerCannotIncrementProgressTwice()
     {
         var word = AddWord("purchase", "mua");
@@ -204,6 +273,7 @@ public class LearningWorkflowTests : IDisposable
 
     private class FixedClock : TimeProvider
     {
-        public override DateTimeOffset GetUtcNow() => new(2026, 10, 7, 6, 0, 0, TimeSpan.Zero);
+        public DateTimeOffset Now { get; set; } = new(2026, 10, 7, 6, 0, 0, TimeSpan.Zero);
+        public override DateTimeOffset GetUtcNow() => Now;
     }
 }

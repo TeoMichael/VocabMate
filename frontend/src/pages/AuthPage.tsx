@@ -50,13 +50,13 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
         <Brand />
         <div className="auth-story-content">
           <p className="eyebrow">A HAPPY PLACE FOR YOUR WORDS</p>
-          <h1>
+          <h2>
             Little words.
             <br />
             Big possibilities.
             <br />
             <em>You’ve got this.</em>
-          </h1>
+          </h2>
           <p>
             Collect the words you love, practice at your own pace, and feel a little more confident
             every day.
@@ -81,7 +81,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
         </div>
         <span className="auth-story-footer">Your words. Your pace. Your progress.</span>
       </section>
-      <section className="auth-form-section">
+      <main className="auth-form-section">
         <div className="auth-mobile-brand">
           <Brand />
         </div>
@@ -89,7 +89,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
           <span className="auth-greeting">
             <Sparkles size={23} />
           </span>
-          <h2>{register ? 'Start your word journey' : 'Welcome back'}</h2>
+          <h1>{register ? 'Start your word journey' : 'Welcome back'}</h1>
           <p className="auth-subtitle">
             {register
               ? 'Create your own vocabulary learning space.'
@@ -169,7 +169,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
             <span /> Your vocabulary belongs to you.
           </div>
         </div>
-      </section>
+      </main>
     </div>
   )
 }

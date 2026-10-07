@@ -16,7 +16,10 @@ export default function TopicManager({
   onClose: () => void
   onChanged: () => void
 }) {
-  const resource = useResource(topicApi.list, [open])
+  const resource = useResource(
+    () => (open ? topicApi.list() : Promise.resolve<Topic[]>([])),
+    [open],
+  )
   const [name, setName] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
@@ -60,7 +63,10 @@ export default function TopicManager({
       <p className="dialog-description">
         Give your words a home. Create topics for the things you’re learning.
       </p>
-      <ErrorMessage message={error || resource.error} />
+      <ErrorMessage
+        message={error || resource.error}
+        onRetry={resource.error ? resource.reload : undefined}
+      />
       <form className="inline-form" onSubmit={create}>
         <label className="sr-only" htmlFor="topic-name">
           New topic name

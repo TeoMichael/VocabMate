@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "format": "prettier --write src vite.config.ts index.html *.json",
-    "format:check": "prettier --check src vite.config.ts index.html *.json",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "format": "prettier --write src tests vite.config.ts index.html *.json",
+    "format:check": "prettier --check src tests vite.config.ts index.html *.json",
     "preview": "vite preview"
   },
   "dependencies": {

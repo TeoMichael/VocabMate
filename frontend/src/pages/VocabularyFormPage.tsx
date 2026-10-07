@@ -20,7 +20,14 @@ export default function VocabularyFormPage() {
   }, [id])
   if (resource.loading) return <Loading />
   if (resource.error || !resource.data)
-    return <ErrorMessage message={resource.error} onRetry={resource.reload} />
+    return (
+      <>
+        <Link className="back-link" to="/vocabulary">
+          <ArrowLeft size={16} /> Back to my vocabulary
+        </Link>
+        <ErrorMessage message={resource.error} onRetry={resource.reload} />
+      </>
+    )
   return (
     <VocabularyEditor
       key={id || 'new'}

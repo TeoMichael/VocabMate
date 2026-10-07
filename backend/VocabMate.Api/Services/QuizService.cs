@@ -38,12 +38,14 @@ public class QuizService(AppDbContext db, LearningProgressService progressServic
             var mode = request.QuizType == QuizType.WEEKLY
                 ? (position % 3) switch { 0 => LearningMode.MULTIPLE_CHOICE, 1 => LearningMode.FILL_MEANING, _ => LearningMode.REVERSE }
                 : request.Mode;
-            if (mode == LearningMode.MULTIPLE_CHOICE && meanings.Count < 2) mode = LearningMode.FILL_MEANING;
-
-            var options = mode == LearningMode.MULTIPLE_CHOICE
-                ? meanings.Where(m => LearningProgressService.Normalize(m) != LearningProgressService.Normalize(word.Meaning))
-                    .OrderBy(_ => Random.Shared.Next()).Take(3).Append(word.Meaning).OrderBy(_ => Random.Shared.Next()).ToArray()
-                : [];
+            string[] options = [];
+            if (mode == LearningMode.MULTIPLE_CHOICE)
+            {
+                var distractors = meanings.Where(m => !LearningProgressService.MeaningsOverlap(m, word.Meaning))
+                    .OrderBy(_ => Random.Shared.Next()).Take(3).ToList();
+                if (distractors.Count == 0) mode = LearningMode.FILL_MEANING;
+                else options = distractors.Append(word.Meaning).OrderBy(_ => Random.Shared.Next()).ToArray();
+            }
             quiz.Results.Add(new QuizResult
             {
                 QuizId = quiz.Id, VocabularyId = word.Id, OriginalVocabularyId = word.Id, Position = position, Mode = mode,

@@ -19,12 +19,12 @@ export default function VocabularyTable({
         <table className="vocabulary-table">
           <thead>
             <tr>
-              <th>Word & meaning</th>
-              <th>Topic</th>
-              <th>Progress</th>
-              {!compact && <th>Added</th>}
+              <th scope="col">Word & meaning</th>
+              <th scope="col">Topic</th>
+              <th scope="col">Progress</th>
+              {!compact && <th scope="col">Added</th>}
               {onDelete && (
-                <th className="actions-heading">
+                <th className="actions-heading" scope="col">
                   <span className="sr-only">Actions</span>
                 </th>
               )}

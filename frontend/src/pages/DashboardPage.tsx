@@ -129,6 +129,7 @@ export default function DashboardPage() {
               ? 'You reached your daily goal. Keep going if you feel like it.'
               : `${Math.max(0, stats.dailyGoal - stats.todayPracticed)} more to reach today’s goal.`}
           </p>
+          <p className="daily-reset">Resets at 00:00 UTC</p>
         </section>
       </div>
       <div className="stat-grid dashboard-stats">

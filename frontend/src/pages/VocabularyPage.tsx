@@ -93,7 +93,7 @@ export default function VocabularyPage() {
       />
       {notice && (
         <div className="notice success" role="status">
-          {notice}
+          <span>{notice}</span>
           <button type="button" className="text-button" onClick={() => setNotice('')}>
             Dismiss
           </button>
@@ -107,6 +107,7 @@ export default function VocabularyPage() {
           </label>
           <input
             id="word-search"
+            maxLength={200}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search words or meanings…"

@@ -1,8 +1,14 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using VocabMate.Api.Configuration;
 using VocabMate.Api.Data;
 using VocabMate.Api.DTOs;
 
@@ -56,6 +62,30 @@ public class AuthTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/vocabularies")).StatusCode);
         var auth = await ApiFactory.RegisterAsync(client);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token + "bad");
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/auth/me")).StatusCode);
+    }
+
+    [Theory]
+    [InlineData("expired")]
+    [InlineData("future")]
+    [InlineData("issuer")]
+    [InlineData("audience")]
+    [InlineData("subject")]
+    public async Task JwtRejectsInvalidLifetimeIssuerAudienceAndSubject(string invalidPart)
+    {
+        using var client = factory.CreateApiClient();
+        var auth = await ApiFactory.RegisterAsync(client);
+        var settings = factory.Services.GetRequiredService<IOptions<JwtSettings>>().Value;
+        var now = DateTime.UtcNow;
+        var token = new JwtSecurityToken(
+            invalidPart == "issuer" ? "UnexpectedIssuer" : settings.Issuer,
+            invalidPart == "audience" ? "UnexpectedAudience" : settings.Audience,
+            [new Claim("sub", invalidPart == "subject" ? "invalid-id" : auth.User.Id.ToString())],
+            notBefore: invalidPart == "future" ? now.AddMinutes(5) : now.AddMinutes(-10),
+            expires: invalidPart == "expired" ? now.AddMinutes(-5) : now.AddHours(1),
+            signingCredentials: new SigningCredentials(
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.Key)), SecurityAlgorithms.HmacSha256));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", new JwtSecurityTokenHandler().WriteToken(token));
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/auth/me")).StatusCode);
     }
 }

@@ -35,4 +35,13 @@ public class LearningProgressService(TimeProvider clock)
     public static bool MatchesMeaning(string answer, string meaning) =>
         meaning.Split(['/', ';'], StringSplitOptions.RemoveEmptyEntries)
             .Any(alias => Normalize(alias) == Normalize(answer)) || Normalize(meaning) == Normalize(answer);
+
+    public static bool MeaningsOverlap(string first, string second)
+    {
+        // An accepted alias must never appear as a supposedly wrong choice.
+        var aliases = first.Split(['/', ';'], StringSplitOptions.RemoveEmptyEntries)
+            .Select(Normalize).Append(Normalize(first)).ToHashSet();
+        return second.Split(['/', ';'], StringSplitOptions.RemoveEmptyEntries)
+            .Select(Normalize).Append(Normalize(second)).Any(aliases.Contains);
+    }
 }
