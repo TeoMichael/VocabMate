@@ -50,7 +50,19 @@ Desktop (1280px), tablet (820px), and mobile (390px) layouts were inspected. Fin
 
 Targeted shared-color checks measured white text on the primary button at 5.21:1. Active navigation text on rose was adjusted to 5.70:1. Visible focus, skip navigation, reduced motion, labels, and drawer keyboard behavior were checked. This is a targeted usability audit, not full accessibility certification.
 
-Fourteen screenshots in `docs/screenshots/` show real learning data at different workflow moments; counts can differ between images. A separate local Mia Nguyen account is retained for presentation, with credentials only in ignored `.local/demo-account.json`. Its words and answers were entered through the UI. See [the demo guide](demo-guide.md).
+Screenshots in `docs/screenshots/` show real learning data at different workflow moments; counts can differ between images. A separate local Mia Nguyen account is retained for presentation, with credentials only in ignored `.local/demo-account.json`. Its words and answers were entered through the UI. See [the demo guide](demo-guide.md).
+
+## Vibrant visual refinement
+
+A second visual pass on October 7, 2026 retained the page structure and strengthened the shared palette, tinted surfaces, buttons, sidebar, mastery badges, progress indicators, and learning feedback. Dashboard, vocabulary, authentication, practice, weekly review/results, statistics, and empty states now use the same brighter design. No backend rules, API contracts, dependencies, or migrations changed.
+
+After this pass, the frontend production build, lint, and format check passed. The backend Release build completed with zero warnings/errors, and all 47 backend tests passed again with none skipped. Both local servers restarted, and `/api/health` and the frontend returned HTTP 200. The earlier 179 PostgreSQL assertions and 11 setup-helper assertions belong to the preceding audit; they were not rerun for this visual-only change.
+
+Browser checks used real API data at 1280, 820, 390, and 320-pixel widths. At 320px, dashboard, vocabulary, add-word form, import dialog, practice modes, active multiple choice, weak words, weekly review, completed weekly results, statistics, login, and registration had no horizontal document overflow. The mobile drawer closed with Escape and restored opener focus; resizing to tablet closed the drawer state. A resumed multiple-choice session saved one correct and one missed answer, with green/rose option and feedback states. Flashcard reveal, completed weekly scoring, and mistake review were inspected without changing their business logic.
+
+Targeted color checks measured white text against the primary gradient endpoints at 5.14:1 and 5.89:1, success text on its green fill at 5.71:1, and error text on its rose fill at 5.46:1. Dark secondary text on rose, lavender, and yellow shared fills remains above 4.5:1. These checks do not constitute full accessibility certification.
+
+All 14 existing screenshots were refreshed, with registration and missed-answer feedback added for a 16-image gallery. The images use real demonstration data. This pass did not seed mock vocabulary or alter database timestamps.
 
 ## Delivery and secrets
 

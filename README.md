@@ -15,7 +15,7 @@ The project keeps a small, readable architecture suitable for a university softw
 - Weekly reviews of up to twenty distinct words, results, and mistake review.
 - Saved unfinished practice sessions, including weekly reviews, that can be resumed.
 - Dashboard and statistics for mastery, accuracy, completed quizzes, and vocabulary growth.
-- A soft pink learning interface, mobile vocabulary cards, keyboard navigation, and loading, empty, validation, and error states.
+- A vibrant pink learning interface, colorful progress cards, supportive quiz feedback, mobile vocabulary cards, keyboard navigation, and loading, empty, validation, and error states.
 
 ## Technology and architecture
 
@@ -224,7 +224,7 @@ Valid lines become separate entries. Invalid lines return their original line nu
 
 ## Screenshots
 
-These screenshots show the pink interface with real vocabulary entered through the application and stored in PostgreSQL. The local demonstration account is retained only in this development workspace; it is not seeded in cloned repositories. Follow the [demo guide](docs/demo-guide.md) to recreate the workflow with your own account.
+These screenshots show the vibrant pink interface with real vocabulary entered through the application and stored in PostgreSQL. They include different moments in the learning workflow, so question numbers and totals can differ. The local demonstration account is retained only in this development workspace; it is not seeded in cloned repositories. Follow the [demo guide](docs/demo-guide.md) to recreate the workflow with your own account.
 
 ![Learning dashboard](docs/screenshots/dashboard.jpg)
 
@@ -236,7 +236,7 @@ These screenshots show the pink interface with real vocabulary entered through t
 
 ![Mobile vocabulary cards](docs/screenshots/mobile-vocabulary.jpg)
 
-More views: [login](docs/screenshots/login.jpg), [practice modes](docs/screenshots/practice-modes.jpg), [flashcards](docs/screenshots/flashcard.jpg), [multiple choice](docs/screenshots/multiple-choice.jpg), [answer feedback](docs/screenshots/quiz-feedback.jpg), [weak words](docs/screenshots/weak-words.jpg), [weekly review](docs/screenshots/weekly-review.jpg), [statistics](docs/screenshots/statistics.jpg), and [mobile practice](docs/screenshots/mobile-practice.jpg).
+More views: [login](docs/screenshots/login.jpg), [registration](docs/screenshots/register.jpg), [practice modes](docs/screenshots/practice-modes.jpg), [flashcards](docs/screenshots/flashcard.jpg), [multiple choice](docs/screenshots/multiple-choice.jpg), [correct answer feedback](docs/screenshots/quiz-feedback.jpg), [missed answer feedback](docs/screenshots/incorrect-feedback.jpg), [weak words](docs/screenshots/weak-words.jpg), [weekly review](docs/screenshots/weekly-review.jpg), [statistics](docs/screenshots/statistics.jpg), and [mobile practice](docs/screenshots/mobile-practice.jpg).
 
 ## Optional appendix: this workspace's portable tools
 
