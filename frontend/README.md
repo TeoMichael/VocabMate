@@ -1,32 +1,39 @@
-# React + TypeScript + Vite
+# VocabMate frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The React interface for your personal vocabulary library and learning sessions.
+See the [project README](../README.md) for PostgreSQL and API setup.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+From this directory:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+npm ci
+# Copy .env.example to .env only if the API address needs changing.
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+The default API address is `http://localhost:5080/api`. Override it with
+`VITE_API_URL` in an ignored `.env` file. The Vite development server runs at
+`http://localhost:5173`.
+
+## Checks
+
+```sh
+npm run build
+npm run lint
+npm run format:check
+```
+
+## Source layout
+
+- `pages/`: library, learning sessions, dashboard, statistics and authentication.
+- `components/`: shared controls, navigation, tables and import/topic dialogs.
+- `context/`: authentication state and the `useAuth` hook.
+- `lib/`: Axios client, API calls, formatting and resource loading.
+- `types.ts`: API response and request types.
+- `index.css`: the learning interface and responsive layouts, using Tailwind CSS.
+
+JWT tokens stay in browser-tab session storage. Axios attaches tokens centrally,
+and unauthorized API responses return the user to login. Quiz answers and learning
+progress are saved by the API; the quiz page URL can resume an unfinished session.
