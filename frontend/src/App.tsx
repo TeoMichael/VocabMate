@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { useAuth } from './context/auth'
@@ -11,6 +12,7 @@ import PracticePage, { PracticeSessionPage } from './pages/PracticePage'
 import WeakWordsPage from './pages/WeakWordsPage'
 import WeeklyReviewPage from './pages/WeeklyReviewPage'
 import StatisticsPage from './pages/StatisticsPage'
+import { returnPath } from './lib/navigation'
 
 function ProtectedRoute() {
   const { user, loading } = useAuth()
@@ -25,8 +27,9 @@ function ProtectedRoute() {
 
 function PublicRoute() {
   const { user, loading } = useAuth()
+  const location = useLocation()
   if (loading) return <Loading />
-  return user ? <Navigate to="/" replace /> : <Outlet />
+  return user ? <Navigate to={returnPath(location.state)} replace /> : <Outlet />
 }
 
 function ScrollToTop() {
@@ -66,4 +69,3 @@ export default function App() {
     </BrowserRouter>
   )
 }
-import { useEffect } from 'react'

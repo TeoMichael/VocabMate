@@ -3,12 +3,13 @@ import type { FormEvent } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
+  CalendarDays,
   Check,
   CheckCircle2,
   CircleHelp,
   GraduationCap,
   Layers,
-  Leaf,
+  Heart,
   ListChecks,
   LoaderCircle,
   RotateCcw,
@@ -19,8 +20,8 @@ import {
 } from 'lucide-react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import type { PracticeMode, QuizSession, QuizType } from '../types'
-import { errorMessage, learningApi } from '../lib/api'
-import { modeLabels, plural, quizLabels } from '../lib/format'
+import { errorMessage, learningApi, vocabularyApi } from '../lib/api'
+import { formatDate, modeLabels, plural, quizLabels } from '../lib/format'
 import { useResource } from '../lib/useResource'
 import { EmptyState, ErrorMessage, Loading, PageHeading } from '../components/ui'
 
@@ -41,7 +42,7 @@ const modes: { id: PracticeMode; icon: typeof Layers; description: string; hint:
     id: 'FILL_MEANING',
     icon: Type,
     description: 'Look at the English word and write its Vietnamese meaning.',
-    hint: 'Recall it in your own words',
+    hint: 'Recall what you saved',
   },
   {
     id: 'REVERSE',
@@ -56,12 +57,21 @@ export default function PracticePage() {
   const requestedType = params.get('type')
   const quizType: QuizType =
     requestedType === 'WEAK_WORDS' || requestedType === 'WEEKLY' ? requestedType : 'PRACTICE'
+  const weekly = quizType === 'WEEKLY'
   const [mode, setMode] = useState<PracticeMode>('FLASHCARD')
   const [size, setSize] = useState(10)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
-  const resource = useResource(learningApi.statistics)
+  const resource = useResource(async () => {
+    const [stats, saved, weeklyReview, weakWords] = await Promise.all([
+      learningApi.statistics(),
+      learningApi.history(false),
+      learningApi.weekly(),
+      quizType === 'WEAK_WORDS' ? vocabularyApi.list({ weakOnly: true }) : Promise.resolve([]),
+    ])
+    return { stats, saved, weeklyReview, weakWords }
+  }, [quizType])
 
   async function start() {
     setBusy(true)
@@ -80,7 +90,6 @@ export default function PracticePage() {
     }
   }
 
-  const weekly = quizType === 'WEEKLY'
   return (
     <>
       <PageHeading
@@ -104,11 +113,43 @@ export default function PracticePage() {
             : 'Choose a way to learn. Your progress is saved after every answer.'
         }
       />
+      {!resource.loading &&
+        !resource.error &&
+        resource.data?.saved.some((quiz) => quiz.quizType === quizType) && (
+          <section className="card saved-practice-card" aria-label="Saved practice sessions">
+            <div className="section-heading">
+              <div>
+                <h2>Pick up where you left off</h2>
+                <p>Your answers are saved. Finish a session whenever you’re ready.</p>
+              </div>
+              <Layers size={23} />
+            </div>
+            <div className="pending-session-list">
+              {resource.data.saved
+                .filter((quiz) => quiz.quizType === quizType)
+                .slice(0, 3)
+                .map((quiz) => (
+                  <Link className="pending-session-card" to={`/practice/${quiz.id}`} key={quiz.id}>
+                    <div>
+                      <h3>{quizLabels[quiz.quizType]}</h3>
+                      <p>
+                        {plural(quiz.totalQuestions, 'word')} · Started {formatDate(quiz.createdAt)}
+                      </p>
+                    </div>
+                    <span className="text-link">
+                      Resume <ArrowRight size={17} />
+                    </span>
+                  </Link>
+                ))}
+            </div>
+          </section>
+        )}
       {resource.loading ? (
         <Loading />
       ) : resource.error ? (
         <ErrorMessage message={resource.error} onRetry={resource.reload} />
-      ) : resource.data?.totalVocabulary === 0 ? (
+      ) : resource.data?.stats.totalVocabulary === 0 &&
+        !(weekly && resource.data.weeklyReview.activeQuizId) ? (
         <section className="card">
           <EmptyState
             title="A few words make a beginning"
@@ -116,6 +157,18 @@ export default function PracticePage() {
             action={
               <Link className="button primary" to="/vocabulary/new">
                 Add vocabulary <ArrowRight size={17} />
+              </Link>
+            }
+          />
+        </section>
+      ) : quizType === 'WEAK_WORDS' && !resource.data?.weakWords.length ? (
+        <section className="card">
+          <EmptyState
+            title="Nothing needs extra review"
+            description="No words meet the review rule right now. Keep learning with a regular practice session, or finish a saved session above."
+            action={
+              <Link className="button primary" to="/practice">
+                Choose regular practice <ArrowRight size={17} />
               </Link>
             }
           />
@@ -164,7 +217,7 @@ export default function PracticePage() {
                   ? 'Finish at your own pace. Reloading this page won’t lose your answers.'
                   : quizType === 'WEAK_WORDS'
                     ? 'Your session includes only words that need extra review.'
-                    : `${plural(resource.data?.reviewCount || 0, 'word')} to review · ${plural(resource.data?.newPracticeCount || 0, 'new word')}`}
+                    : `${plural(resource.data?.stats.reviewCount || 0, 'word')} to review · ${plural(resource.data?.stats.newPracticeCount || 0, 'new word')}`}
               </p>
               {!weekly && (
                 <label className="session-size">
@@ -180,17 +233,35 @@ export default function PracticePage() {
             <button
               type="button"
               className="button primary large"
-              disabled={busy}
+              disabled={busy || (weekly && !resource.data?.weeklyReview.available)}
               onClick={() => {
                 void start()
               }}
             >
               {busy ? <LoaderCircle size={19} className="spinner" /> : <GraduationCap size={20} />}
-              {busy ? 'Preparing your words…' : weekly ? 'Start weekly test' : 'Start practice'}
+              {busy
+                ? 'Preparing your words…'
+                : weekly
+                  ? resource.data?.weeklyReview.activeQuizId
+                    ? 'Resume weekly review'
+                    : 'Start weekly test'
+                  : 'Start practice'}
               <ArrowRight size={18} />
             </button>
           </section>
           <ErrorMessage message={error} />
+          {weekly && !resource.data?.weeklyReview.available && (
+            <div className="notice" role="status">
+              <CalendarDays size={19} />
+              <span>
+                Your weekly review opens{' '}
+                {resource.data && formatDate(resource.data.weeklyReview.availableAt)}.{' '}
+                <Link className="text-link" to="/weekly-review">
+                  See your weekly plan <ArrowRight size={14} />
+                </Link>
+              </span>
+            </div>
+          )}
           <div className="practice-note">
             <CircleHelp size={17} />
             <p>
@@ -336,7 +407,7 @@ export function PracticeSessionPage() {
             {!answered && !revealData ? (
               <>
                 <div className="flashcard-hidden">
-                  <Leaf size={27} />
+                  <Heart size={27} />
                   <span>A moment to remember</span>
                 </div>
                 <button
@@ -411,6 +482,7 @@ export function PracticeSessionPage() {
             <input
               key={question.id}
               id="quiz-answer"
+              aria-describedby={!answered ? 'quiz-answer-hint' : undefined}
               value={answered ? question.userAnswer || '' : answer}
               onChange={(event) => setAnswer(event.target.value)}
               disabled={busy || answered}
@@ -422,6 +494,13 @@ export function PracticeSessionPage() {
               maxLength={1000}
               autoFocus
             />
+            {!answered && (
+              <p className="quiz-helper" id="quiz-answer-hint">
+                {question.mode === 'REVERSE'
+                  ? 'Use the English word you saved. Capital letters and extra spaces are okay.'
+                  : 'Use any meaning you saved (separated by / or ;). Capital letters and extra spaces are okay; keep Vietnamese accents.'}
+              </p>
+            )}
             {!answered && (
               <button className="button primary" disabled={busy || !answer.trim()}>
                 {busy ? <LoaderCircle size={18} className="spinner" /> : <Check size={18} />} Check
@@ -446,7 +525,7 @@ export function PracticeSessionPage() {
                     ? 'Another step toward remembering this word.'
                     : 'Correct answer:'
                   : 'The answer to remember:'}{' '}
-                {question.mode !== 'FLASHCARD' && <strong>{question.correctAnswer}</strong>}
+                <strong>{question.correctAnswer}</strong>
               </p>
             </div>
           </div>
@@ -510,7 +589,7 @@ function QuizResults({ quiz }: { quiz: QuizSession }) {
         </div>
         <div className="results-breakdown">
           <div>
-            <span className="result-dot green" />
+            <span className="result-dot fuchsia" />
             <strong>{quiz.mastered}</strong>
             <span>Mastered</span>
           </div>
@@ -520,7 +599,7 @@ function QuizResults({ quiz }: { quiz: QuizSession }) {
             <span>Still learning</span>
           </div>
           <div>
-            <span className="result-dot lilac" />
+            <span className="result-dot lavender" />
             <strong>{quiz.needReview}</strong>
             <span>Need review</span>
           </div>
@@ -530,19 +609,27 @@ function QuizResults({ quiz }: { quiz: QuizSession }) {
             <button
               type="button"
               className="button secondary"
+              aria-expanded={showMistakes}
+              aria-controls="quiz-mistakes"
               onClick={() => setShowMistakes(!showMistakes)}
             >
               <RotateCcw size={17} />
               {showMistakes ? 'Hide mistakes' : 'Review mistakes'}
             </button>
           )}
+          <Link
+            className="button secondary"
+            to={quiz.quizType === 'WEAK_WORDS' ? '/practice?type=WEAK_WORDS' : '/practice'}
+          >
+            Practice again <ArrowRight size={17} />
+          </Link>
           <Link className="button primary" to="/">
             Back to my overview <ArrowRight size={17} />
           </Link>
         </div>
       </section>
       {showMistakes && (
-        <section className="card mistakes-card">
+        <section className="card mistakes-card" id="quiz-mistakes">
           <div className="section-heading">
             <div>
               <h2>A closer look at your mistakes</h2>

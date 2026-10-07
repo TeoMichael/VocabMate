@@ -109,7 +109,8 @@ export const learningApi = {
   start: async (quizType: QuizType, mode: PracticeMode, size: number) =>
     (await api.post<QuizSession>('/practice', { quizType, mode, size })).data,
   get: async (id: string) => (await api.get<QuizSession>(`/quizzes/${id}`)).data,
-  history: async () => (await api.get<QuizSummary[]>('/quizzes')).data,
+  history: async (completed = true) =>
+    (await api.get<QuizSummary[]>('/quizzes', { params: { completed } })).data,
   answer: async (id: string, questionId: string, answer?: string, known?: boolean) =>
     (
       await api.post<{ isCorrect: boolean; correctAnswer: string; quiz: QuizSession }>(

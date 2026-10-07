@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import type { Topic } from '../types'
 import { Check, FolderOpen, LoaderCircle, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { errorMessage, topicApi } from '../lib/api'
 import { useResource } from '../lib/useResource'
@@ -21,6 +22,7 @@ export default function TopicManager({
   const [editName, setEditName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [deleting, setDeleting] = useState<Topic | null>(null)
 
   async function mutate(action: () => Promise<unknown>) {
     setBusy(true)
@@ -29,6 +31,7 @@ export default function TopicManager({
       await action()
       setName('')
       setEditing(null)
+      setDeleting(null)
       resource.reload()
       onChanged()
     } catch (reason) {
@@ -44,7 +47,16 @@ export default function TopicManager({
   }
 
   return (
-    <Dialog open={open} title="Your topics" onClose={onClose}>
+    <Dialog
+      open={open}
+      title="Your topics"
+      onClose={() => {
+        if (!busy) {
+          setDeleting(null)
+          onClose()
+        }
+      }}
+    >
       <p className="dialog-description">
         Give your words a home. Create topics for the things you’re learning.
       </p>
@@ -76,7 +88,34 @@ export default function TopicManager({
         <ul className="topic-manager-list">
           {resource.data.map((topic) => (
             <li key={topic.id}>
-              {editing === topic.id ? (
+              {deleting?.id === topic.id ? (
+                <div className="topic-delete-confirm" role="alert">
+                  <div>
+                    <strong>Remove “{topic.name}”?</strong>
+                    <p>This empty topic will be permanently removed.</p>
+                  </div>
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      className="button secondary"
+                      disabled={busy}
+                      onClick={() => setDeleting(null)}
+                    >
+                      Keep topic
+                    </button>
+                    <button
+                      type="button"
+                      className="button danger"
+                      disabled={busy}
+                      onClick={() => {
+                        void mutate(() => topicApi.remove(topic.id))
+                      }}
+                    >
+                      {busy ? 'Removing…' : 'Remove topic'}
+                    </button>
+                  </div>
+                </div>
+              ) : editing === topic.id ? (
                 <form
                   className="inline-form topic-edit"
                   onSubmit={(event) => {
@@ -144,7 +183,8 @@ export default function TopicManager({
                       }
                       aria-label={`Delete ${topic.name}`}
                       onClick={() => {
-                        void mutate(() => topicApi.remove(topic.id))
+                        setError('')
+                        setDeleting(topic)
                       }}
                     >
                       {busy ? <LoaderCircle size={16} className="spinner" /> : <Trash2 size={16} />}

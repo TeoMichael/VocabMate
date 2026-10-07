@@ -49,7 +49,7 @@ export interface ImportResult {
 
 export interface QuizQuestion {
   id: string
-  vocabularyId: string
+  vocabularyId: string | null
   word: string
   mode: PracticeMode
   prompt: string
@@ -79,7 +79,7 @@ export interface QuizSummary {
   score: number
   totalQuestions: number
   createdAt: string
-  completedAt: string
+  completedAt: string | null
 }
 
 export interface WeeklyReview {
@@ -90,6 +90,7 @@ export interface WeeklyReview {
   wordsLearned: number
   questionCount: number
   lastQuizId: string | null
+  activeQuizId: string | null
 }
 
 export interface Statistics {

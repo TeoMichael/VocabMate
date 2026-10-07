@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { learningApi } from '../lib/api'
-import { formatDate, quizLabels } from '../lib/format'
+import { formatDate, plural, quizLabels } from '../lib/format'
 import { useResource } from '../lib/useResource'
 import { EmptyState, ErrorMessage, Loading, PageHeading, SectionHeading } from '../components/ui'
 
@@ -23,10 +23,10 @@ export default function StatisticsPage() {
     return <ErrorMessage message={resource.error} onRetry={resource.reload} />
   const { stats, quizzes } = resource.data
   const levels = [
-    { label: 'New', count: stats.new, color: 'lilac', description: 'Net score 0' },
+    { label: 'New', count: stats.new, color: 'lavender', description: 'Net score 0' },
     { label: 'Learning', count: stats.learning, color: 'peach', description: 'Net score 1–2' },
-    { label: 'Familiar', count: stats.familiar, color: 'sage', description: 'Net score 3–4' },
-    { label: 'Mastered', count: stats.mastered, color: 'green', description: 'Net score 5+' },
+    { label: 'Familiar', count: stats.familiar, color: 'rose', description: 'Net score 3–4' },
+    { label: 'Mastered', count: stats.mastered, color: 'fuchsia', description: 'Net score 5+' },
   ]
   const totalAnswers = stats.correctAnswers + stats.incorrectAnswers
   const trend = stats.wordsOverTime.slice(-14)
@@ -46,7 +46,7 @@ export default function StatisticsPage() {
       />
       <div className="stat-grid statistics-stats">
         <div className="stat-card">
-          <span className="stat-icon sage">
+          <span className="stat-icon rose">
             <BookOpen size={21} />
           </span>
           <div>
@@ -56,7 +56,7 @@ export default function StatisticsPage() {
           </div>
         </div>
         <div className="stat-card">
-          <span className="stat-icon green">
+          <span className="stat-icon fuchsia">
             <CheckCircle2 size={21} />
           </span>
           <div>
@@ -76,7 +76,7 @@ export default function StatisticsPage() {
           </div>
         </div>
         <div className="stat-card">
-          <span className="stat-icon lilac">
+          <span className="stat-icon lavender">
             <Target size={21} />
           </span>
           <div>
@@ -159,7 +159,7 @@ export default function StatisticsPage() {
             </div>
             <div className="answer-counts">
               <div>
-                <span className="legend-dot green" />
+                <span className="legend-dot fuchsia" />
                 <strong>{stats.correctAnswers}</strong>
                 <span>Correct answers</span>
               </div>
@@ -239,7 +239,7 @@ export default function StatisticsPage() {
                       day: 'numeric',
                       year: 'numeric',
                     })}{' '}
-                    · {quiz.totalQuestions} questions
+                    · {plural(quiz.totalQuestions, 'question')}
                   </span>
                 </div>
                 <span className="history-score">

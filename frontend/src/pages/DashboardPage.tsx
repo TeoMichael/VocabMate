@@ -4,6 +4,7 @@ import {
   CalendarDays,
   Check,
   CircleCheck,
+  Heart,
   Leaf,
   Plus,
   Sparkles,
@@ -99,7 +100,7 @@ export default function DashboardPage() {
           <div className="hero-art" aria-hidden="true">
             <div className="hero-art-ring" />
             <div className="hero-word-card">
-              <Leaf size={20} />
+              <Heart size={20} />
               <span>little by little</span>
               <small>từng chút một</small>
               <div>
@@ -107,7 +108,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <span className="hero-art-leaf">
-              <Sprout size={65} strokeWidth={1.1} />
+              <Sparkles size={65} strokeWidth={1.3} />
             </span>
           </div>
         </section>
@@ -133,7 +134,7 @@ export default function DashboardPage() {
       </div>
       <div className="stat-grid dashboard-stats">
         <div className="stat-card">
-          <span className="stat-icon sage">
+          <span className="stat-icon rose">
             <BookOpen size={21} />
           </span>
           <div>
@@ -143,7 +144,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="stat-card">
-          <span className="stat-icon green">
+          <span className="stat-icon fuchsia">
             <CircleCheck size={21} />
           </span>
           <div>
@@ -163,7 +164,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="stat-card">
-          <span className="stat-icon lilac">
+          <span className="stat-icon lavender">
             <Sprout size={21} />
           </span>
           <div>
@@ -209,11 +210,13 @@ export default function DashboardPage() {
               </p>
             </div>
             <Link className="button secondary" to="/weekly-review">
-              {weekly.questionCount === 0
-                ? 'Your weekly review'
-                : weekly.available
-                  ? 'Take a look'
-                  : `Ready ${formatDate(weekly.availableAt)}`}
+              {weekly.activeQuizId
+                ? 'Resume review'
+                : weekly.questionCount === 0
+                  ? 'Your weekly review'
+                  : weekly.available
+                    ? 'Take a look'
+                    : `Ready ${formatDate(weekly.availableAt)}`}
               <ArrowRight size={16} />
             </Link>
           </section>

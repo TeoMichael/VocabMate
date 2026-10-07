@@ -1,11 +1,22 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { ArrowRight, BookOpen, Check, Eye, EyeOff, Leaf, LoaderCircle } from 'lucide-react'
+import {
+  ArrowRight,
+  BookHeart,
+  Check,
+  Eye,
+  EyeOff,
+  Heart,
+  LoaderCircle,
+  Sparkles,
+  Star,
+} from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Brand } from '../components/Layout'
 import { ErrorMessage } from '../components/ui'
 import { useAuth } from '../context/auth'
 import { errorMessage } from '../lib/api'
+import { returnPath } from '../lib/navigation'
 
 export default function AuthPage({ register = false }: { register?: boolean }) {
   const auth = useAuth()
@@ -25,8 +36,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
     try {
       if (register) await auth.register(name.trim(), email.trim(), password)
       else await auth.login(email.trim(), password)
-      const from = (location.state as { from?: string } | null)?.from
-      navigate(from?.startsWith('/') && !from.startsWith('//') ? from : '/', { replace: true })
+      navigate(returnPath(location.state), { replace: true })
     } catch (reason) {
       setError(errorMessage(reason))
     } finally {
@@ -39,32 +49,33 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
       <section className="auth-story">
         <Brand />
         <div className="auth-story-content">
-          <p className="eyebrow">A SPACE FOR YOUR WORDS</p>
+          <p className="eyebrow">A HAPPY PLACE FOR YOUR WORDS</p>
           <h1>
-            Small steps.
-            <br />A world of
+            Little words.
             <br />
-            <em>new words.</em>
+            Big possibilities.
+            <br />
+            <em>You’ve got this.</em>
           </h1>
           <p>
-            Learn the vocabulary that matters to you. Practice a little each day, and watch your
-            confidence grow.
+            Collect the words you love, practice at your own pace, and feel a little more confident
+            every day.
           </p>
           <div className="auth-illustration" aria-hidden="true">
             <div className="illustration-orbit" />
             <div className="illustration-card">
-              <BookOpen size={31} />
+              <BookHeart size={31} />
               <span>acquire</span>
               <small>to gain something new</small>
               <div>
-                <Check size={14} /> One word closer
+                <Check size={14} /> A tiny learning win
               </div>
             </div>
             <span className="illustration-leaf leaf-one">
-              <Leaf size={32} />
+              <Heart size={32} fill="currentColor" strokeWidth={1.4} />
             </span>
             <span className="illustration-leaf leaf-two">
-              <Leaf size={21} />
+              <Star size={21} fill="currentColor" strokeWidth={1.4} />
             </span>
           </div>
         </div>
@@ -76,7 +87,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
         </div>
         <div className="auth-form-wrap">
           <span className="auth-greeting">
-            <Leaf size={21} />
+            <Sparkles size={23} />
           </span>
           <h2>{register ? 'Start your word journey' : 'Welcome back'}</h2>
           <p className="auth-subtitle">
@@ -95,7 +106,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
                   onChange={(event) => setName(event.target.value)}
                   required
                   maxLength={80}
-                  placeholder="How should we call you?"
+                  placeholder="What should we call you?"
                   autoFocus
                 />
               </label>

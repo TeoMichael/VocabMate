@@ -4,7 +4,7 @@ import {
   Check,
   Clock3,
   Layers,
-  Leaf,
+  Heart,
   LockKeyhole,
   Target,
 } from 'lucide-react'
@@ -40,7 +40,7 @@ export default function WeeklyReviewPage() {
                 </small>
               </span>
               <span className="weekly-art-leaf">
-                <Leaf size={44} strokeWidth={1.3} />
+                <Heart size={44} strokeWidth={1.5} />
               </span>
             </div>
             <div className="weekly-feature-content">
@@ -70,7 +70,11 @@ export default function WeeklyReviewPage() {
                   <span>Questions in your review</span>
                 </div>
               </div>
-              {resource.data.questionCount === 0 ? (
+              {resource.data.activeQuizId ? (
+                <Link className="button primary" to={`/practice/${resource.data.activeQuizId}`}>
+                  Resume weekly review <ArrowRight size={18} />
+                </Link>
+              ) : resource.data.questionCount === 0 ? (
                 <Link className="button primary" to="/vocabulary/new">
                   Add your first word <ArrowRight size={18} />
                 </Link>

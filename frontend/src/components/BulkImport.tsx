@@ -22,6 +22,7 @@ export default function BulkImport({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<ImportResult | null>(null)
+  const selectedTopicId = topics.some((topic) => topic.id === topicId) ? topicId : ''
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -29,7 +30,7 @@ export default function BulkImport({
     setError('')
     setResult(null)
     try {
-      const response = await vocabularyApi.import(text, topicId || null)
+      const response = await vocabularyApi.import(text, selectedTopicId || null)
       setResult(response)
       setText(response.invalidLines.map((line) => line.text).join('\n'))
       onImported()
@@ -41,16 +42,25 @@ export default function BulkImport({
   }
 
   return (
-    <Dialog open={open} title="Add a handful of words" onClose={onClose}>
+    <Dialog
+      open={open}
+      title="Add a handful of words"
+      onClose={() => {
+        if (!busy) onClose()
+      }}
+    >
       <p className="dialog-description">
-        Paste one word and meaning per line, separated by a hyphen.
+        Paste up to 500 entries, one per line: word - meaning. Leave a space on each side of the
+        hyphen.
       </p>
       <ErrorMessage message={error} />
       {result && (
-        <div className="notice success" role="status">
+        <div className={`notice ${result.importedCount > 0 ? 'success' : 'error'}`} role="status">
           <CheckCircle2 size={20} />
           <span>
-            {plural(result.importedCount, 'word')} added to your vocabulary.
+            {result.importedCount > 0
+              ? `${plural(result.importedCount, 'word')} added to your vocabulary.`
+              : 'No words added yet.'}
             {result.invalidLines.length > 0 && ' Correct the remaining lines below and try again.'}
           </span>
         </div>
@@ -91,7 +101,7 @@ export default function BulkImport({
         </div>
         <label className="field">
           Topic <span className="optional">optional</span>
-          <select value={topicId} onChange={(event) => setTopicId(event.target.value)}>
+          <select value={selectedTopicId} onChange={(event) => setTopicId(event.target.value)}>
             <option value="">No topic</option>
             {topics.map((topic) => (
               <option key={topic.id} value={topic.id}>
@@ -101,7 +111,7 @@ export default function BulkImport({
           </select>
         </label>
         <div className="form-actions">
-          <button type="button" className="button secondary" onClick={onClose}>
+          <button type="button" className="button secondary" disabled={busy} onClick={onClose}>
             Done
           </button>
           <button className="button primary" disabled={busy || !text.trim()}>

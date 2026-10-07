@@ -8,7 +8,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { Vocabulary } from '../types'
 import { errorMessage, topicApi, vocabularyApi } from '../lib/api'
 import { useResource } from '../lib/useResource'
@@ -19,6 +19,8 @@ import TopicManager from '../components/TopicManager'
 import BulkImport from '../components/BulkImport'
 
 export default function VocabularyPage() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [topicId, setTopicId] = useState('')
@@ -28,7 +30,14 @@ export default function VocabularyPage() {
   const [deleting, setDeleting] = useState<Vocabulary | null>(null)
   const [deleteBusy, setDeleteBusy] = useState(false)
   const [deleteError, setDeleteError] = useState('')
-  const [notice, setNotice] = useState('')
+  const [notice, setNotice] = useState<string>(() =>
+    typeof location.state?.notice === 'string' ? location.state.notice : '',
+  )
+  useEffect(() => {
+    if (typeof location.state?.notice === 'string') {
+      navigate(location.pathname, { replace: true, state: null })
+    }
+  }, [location, navigate])
   const topics = useResource(topicApi.list)
   const selectedTopicId =
     topics.data && !topics.data.some((topic) => topic.id === topicId) ? '' : topicId

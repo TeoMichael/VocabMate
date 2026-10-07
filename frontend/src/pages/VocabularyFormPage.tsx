@@ -67,7 +67,9 @@ function VocabularyEditor({
     try {
       if (id) await vocabularyApi.update(id, data)
       else await vocabularyApi.create(data)
-      navigate('/vocabulary')
+      navigate('/vocabulary', {
+        state: { notice: `“${data.word}” was ${id ? 'updated' : 'added to your vocabulary'}.` },
+      })
     } catch (reason) {
       setError(errorMessage(reason))
     } finally {
@@ -82,7 +84,7 @@ function VocabularyEditor({
       </Link>
       <PageHeading
         eyebrow="MAKE IT YOURS"
-        title={id ? 'A little refinement' : 'Meet your next word'}
+        title={id ? 'Edit your word' : 'Meet your next word'}
         description={
           id
             ? 'Update your word, meaning, or example sentence.'
@@ -108,9 +110,11 @@ function VocabularyEditor({
                 autoFocus
               />
             </label>
-            <label className="field">
-              Meaning
+            <div className="field">
+              <label htmlFor="word-meaning">Meaning</label>
               <textarea
+                id="word-meaning"
+                aria-describedby="word-meaning-hint"
                 rows={2}
                 value={fields.meaning}
                 onChange={(event) => setFields({ ...fields, meaning: event.target.value })}
@@ -118,10 +122,10 @@ function VocabularyEditor({
                 maxLength={500}
                 placeholder="e.g. đạt được / có được"
               />
-              <span className="field-hint">
+              <span className="field-hint" id="word-meaning-hint">
                 For more than one acceptable meaning, separate them with / or ;.
               </span>
-            </label>
+            </div>
             <label className="field">
               Example sentence <span className="optional">optional</span>
               <textarea
@@ -132,9 +136,13 @@ function VocabularyEditor({
                 placeholder="e.g. She acquired new skills."
               />
             </label>
-            <label className="field">
-              Topic <span className="optional">optional</span>
+            <div className="field">
+              <label htmlFor="word-topic">
+                Topic <span className="optional">optional</span>
+              </label>
               <select
+                id="word-topic"
+                aria-describedby="word-topic-hint"
                 value={fields.topicId || ''}
                 onChange={(event) => setFields({ ...fields, topicId: event.target.value || null })}
               >
@@ -145,10 +153,10 @@ function VocabularyEditor({
                   </option>
                 ))}
               </select>
-              <span className="field-hint">
+              <span className="field-hint" id="word-topic-hint">
                 Create or rename topics from your vocabulary library.
               </span>
-            </label>
+            </div>
             <div className="form-actions">
               <Link className="button secondary" to="/vocabulary">
                 Cancel
@@ -178,8 +186,14 @@ function VocabularyEditor({
           <div className="small-note">
             <Check size={18} />
             <p>
-              Your new word starts at <strong>New</strong>. Practice it to build confidence and
-              track your progress.
+              {id ? (
+                'Your learning progress stays with this word. New quizzes use the updated details.'
+              ) : (
+                <>
+                  Your new word starts at <strong>New</strong>. Practice it to build confidence and
+                  track your progress.
+                </>
+              )}
             </p>
           </div>
         </aside>
