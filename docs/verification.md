@@ -13,9 +13,28 @@ Development verification on October 7, 2026 used .NET 8, Node 24, and a workspac
 - Both API verification accounts and their data were removed after checks.
 - NuGet vulnerability check reported no vulnerable API packages, including transitive dependencies.
 
-## Frontend and delivery
+## Browser verification
 
-Final frontend build, lint, browser checks, and GitHub verification are recorded when complete in the milestone task list.
+The application was exercised against the running API and PostgreSQL database:
+
+- Account registration, topic creation, bulk import with an invalid line, vocabulary editing, and search.
+- Logout and login restore the persisted library and learning progress.
+- Flashcard reveal/self-assessment, multiple choice, fill meaning, and reverse quiz.
+- Weak-word detection and focused practice.
+- Weekly review with six questions and a result of 5/6. Mistake review displayed `travel` → `du lịch`, and the next review availability advanced to October 14, 2026.
+- A 390-pixel mobile viewport; detected horizontal overflow was corrected and checked again.
+
+Screenshots are saved in `docs/screenshots/`. The browser verification account was removed after testing; screenshots show actual persisted test data, with no shared demo account seeded.
+
+## Final checks and delivery
+
+- Final frontend `npm run build`: passed.
+- Final frontend `npm run lint` (oxlint): passed.
+- Final frontend `npm run format:check` (Prettier): passed.
+- Final backend Release build: passed, zero warnings/errors.
+- Final backend test rerun: 44 passed, zero failed/skipped.
+- Clean isolated `npm ci` using the current `package-lock.json`: passed, zero vulnerabilities reported.
+- GitHub repository creation, push, and remote commit verification: pending.
 
 ## Secrets
 

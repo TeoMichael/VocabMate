@@ -56,7 +56,14 @@ Run `dotnet --info`, `node --version`, and `npm --version` to check your tools. 
 
 ## Installation and database setup
 
-Clone this repository and enter its root directory. Restore project dependencies:
+Clone this repository and enter its root directory:
+
+```sh
+git clone https://github.com/TeoMichael/VocabMate.git
+cd VocabMate
+```
+
+The repository is private, so GitHub access is required. Restore project dependencies:
 
 ```sh
 dotnet restore backend/VocabMate.sln
@@ -166,6 +173,7 @@ dotnet test backend/VocabMate.sln
 cd frontend
 npm run build
 npm run lint
+npm run format:check
 ```
 
 The frontend production bundle is written to `frontend/dist`. Test coverage focuses on authentication, ownership, library operations, answer scoring, mastery, weak-word detection, and weekly selection. Check the actual command output for the result; successful build commands do not establish that a production deployment has been configured.
@@ -210,7 +218,13 @@ Valid lines become separate entries. Invalid lines return their line numbers and
 
 ## Screenshots
 
-Add screenshots of the dashboard, vocabulary library, practice modes, weekly results, and mobile layout here before your project presentation.
+These screenshots were captured during browser verification using vocabulary entered through the application and stored in PostgreSQL.
+
+![Learning dashboard](docs/screenshots/dashboard.jpg)
+
+[Mobile vocabulary layout](docs/screenshots/mobile-vocabulary.jpg)
+
+Placeholder: add screenshots of practice modes and weekly results before your project presentation.
 
 ## Optional appendix: this workspace's portable tools
 
