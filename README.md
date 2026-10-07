@@ -6,6 +6,12 @@ VocabMate is a personal English vocabulary learning application. Add words and V
 
 The project keeps a small, readable architecture suitable for a university software project. The frontend talks to the real REST API, and PostgreSQL stores each user's own library and learning history.
 
+## Live demo
+
+Open [VocabMate](https://vocabmate-teomichael.vercel.app) to register and start learning without installing anything. The frontend runs on Vercel Hobby, the API on Render Free, and PostgreSQL on Neon Free. The API [health check](https://vocabmate-api.onrender.com/api/health) is public. The free API can take about a minute to wake after inactivity.
+
+See [production deployment](docs/deployment.md) for verified flows, environment variable names, automatic deployments from `main`, migration procedures, and free-plan limits. Production is separate from local development; no local demo accounts are uploaded.
+
 ## Features
 
 - Registration, login, protected pages, and vocabulary ownership checks.
@@ -45,6 +51,8 @@ VocabMate/
 ├── .config/dotnet-tools.json    # Repository-local EF CLI
 ├── .env.example                # Blank Docker database configuration
 ├── docker-compose.yml          # Local PostgreSQL
+├── Dockerfile                  # Production API image
+├── render.yaml                 # Render Free service template
 └── README.md
 ```
 
@@ -55,7 +63,7 @@ VocabMate/
 - PostgreSQL 17/18, or Docker with Docker Compose.
 - Git; GitHub CLI is optional.
 
-Run `dotnet --info`, `node --version`, and `npm --version` to check your tools. Docker only runs the database; the API and frontend run locally.
+Run `dotnet --info`, `node --version`, and `npm --version` to check your tools. In the local Compose setup, Docker runs the database while the API and frontend run locally. Production uses the separate API Dockerfile.
 
 ## Installation and database setup
 
@@ -185,7 +193,7 @@ npm run lint
 npm run format:check
 ```
 
-The frontend production bundle is written to `frontend/dist`. Release verification passed 59 backend tests in both Debug and Release, two frontend regression tests, 179 live PostgreSQL assertions, and 11 isolated startup-helper assertions. A clean `npm ci` reported zero vulnerabilities, and the NuGet audit reported no vulnerable packages in either backend project, including transitive dependencies. Both committed migrations were applied from zero to a separate PostgreSQL database. Docker configuration was stub-tested because Docker is unavailable on this machine; actual container startup was not tested. See [release verification](docs/release-verification.md) for commands, browser coverage, and limits. The [earlier audit](docs/verification.md) is retained as a historical record.
+The frontend production bundle is written to `frontend/dist`. The original v1.0.0 [release verification](docs/release-verification.md) passed 59 backend tests in both Debug and Release, two frontend regression tests, 179 live PostgreSQL assertions, and 11 isolated startup-helper assertions. The subsequent [deployment verification](docs/deployment.md) passed 74 backend tests, four frontend tests, Release build/publish, lint, formatting, and 157 assertions against the public API. Render also built and ran the Linux Docker image with all 74 backend tests passing. A clean `npm ci` reported zero vulnerabilities. Both committed migrations are applied to the separate production database. The [earlier audit](docs/verification.md) is retained as a historical record.
 
 With the API and PostgreSQL running, optional HTTP smoke checks use PowerShell 7 to create fresh verification accounts and exercise the live API:
 
@@ -259,12 +267,12 @@ The original development workspace includes ignored `.local/` tools because Dock
 - Daily goals reset at 00:00 UTC (07:00 in Vietnam); the dashboard states the reset time. Growth charts use UTC dates.
 - Vocabulary lists load the user's complete library without pagination. Quiz history is capped at 50 sessions per completed/unfinished view. This is intended for a student-scale personal library.
 - Meaning comparison uses normalized saved aliases, not fuzzy matching. Flashcards record the learner's self-assessment.
-- Production hosting, HTTPS termination, rate limiting, backups, and monitoring require deployment work. Development HTTP launch commands are for local use.
-- Docker configuration was inspected and stub-tested; actual Docker execution was unavailable. Real PostgreSQL migrations and API flows were tested independently.
+- Free hosting has idle wake-up delays and usage limits. Neon provides a short six-hour recovery window, rather than long-term independent backups. See [deployment limits](docs/deployment.md#free-plan-limits-and-recovery).
+- Authentication rate limiting and external uptime monitoring are not enabled. Development HTTP launch commands are for local use.
 - Accessibility received targeted keyboard, labeling, contrast, and responsive checks, not a formal compliance certification.
 
 ## Future development
 
-Possible later work includes scheduled weekly reminders, adjustable mastery rules, more flexible imports, accessibility improvements, and production deployment with HTTPS and secret management. Refresh tokens and server-side session revocation can be added if longer sessions become necessary.
+Possible later work includes scheduled weekly reminders, adjustable mastery rules, more flexible imports, accessibility improvements, longer backup retention, and operational monitoring. Refresh tokens and server-side session revocation can be added if longer sessions become necessary.
 
 AI chat, generated definitions, speech recognition, pronunciation scoring, OCR, machine learning, social features, complex gamification, and native mobile applications are outside V1.
